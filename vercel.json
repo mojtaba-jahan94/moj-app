@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/apps/:id",
+      "destination": "/api/apps?id=:id"
+    }
+  ]
+}

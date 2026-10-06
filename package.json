@@ -1,0 +1,22 @@
+{
+  "name": "nexus-projects-hub",
+  "version": "1.0.0",
+  "description": "Interactive Projects Showcase Hub & Admin Management Panel",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "portfolio",
+    "landing-page",
+    "admin-panel",
+    "showcase",
+    "projects"
+  ],
+  "author": "Mojtaba",
+  "license": "MIT",
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  }
+}

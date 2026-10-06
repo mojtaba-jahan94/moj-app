@@ -15,23 +15,27 @@ const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '1234';
 const DATA_FILE = path.join(process.cwd(), 'data', 'apps.json');
 
-// Initialize Turso Client if configured
+// Helper to obtain Turso Client with support for multiple env variable aliases
 let tursoClient = null;
-if (TURSO_URL && TURSO_AUTH_TOKEN) {
-  try {
-    tursoClient = createClient({
-      url: TURSO_URL,
-      authToken: TURSO_AUTH_TOKEN
-    });
-  } catch (err) {
-    console.error('Failed to initialize Turso client:', err);
+function getTursoClient() {
+  const url = process.env.TURSO_DATABASE_URL || process.env.TURSO_DB_URL || process.env.LIBSQL_URL;
+  const authToken = process.env.TURSO_AUTH_TOKEN || process.env.TURSO_DB_AUTH_TOKEN || process.env.LIBSQL_AUTH_TOKEN;
+  if (!url) return null;
+  if (!tursoClient) {
+    try {
+      tursoClient = createClient({ url, authToken });
+    } catch (err) {
+      console.error('Failed to initialize Turso client:', err);
+    }
   }
+  return tursoClient;
 }
 
 // Helper to ensure database table exists in Turso
 async function ensureTursoTable() {
-  if (!tursoClient) return;
-  await tursoClient.execute(`
+  const client = getTursoClient();
+  if (!client) return;
+  await client.execute(`
     CREATE TABLE IF NOT EXISTS apps (
       id TEXT PRIMARY KEY,
       title_fa TEXT NOT NULL,
@@ -127,6 +131,8 @@ module.exports = async function handler(req, res) {
   const appId = req.query?.id || req.body?.id;
 
   try {
+    const tursoClient = getTursoClient();
+
     // ----------------------------------------------------
     // 1. GET: Fetch all apps (Public - Read-Only)
     // ----------------------------------------------------

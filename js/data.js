@@ -133,17 +133,26 @@ class DataManager {
   async checkServer() {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200);
-      const res = await fetch(`${this.apiBase}/health`, { signal: controller.signal });
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s to allow serverless cold start
+      const res = await fetch(`${this.apiBase}/apps`, { signal: controller.signal });
       clearTimeout(timeoutId);
       if (res.ok) {
+        const json = await res.json();
         this.serverOnline = true;
+        this.dataSource = json.source || 'server';
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          this.apps = json.data;
+          this.persistToLocalStorage();
+        }
+        this.updateServerStatusBadge();
+        return true;
       }
-    } catch {
-      this.serverOnline = false;
+    } catch (err) {
+      console.warn('API connection check:', err);
     }
+    this.serverOnline = false;
     this.updateServerStatusBadge();
-    return this.serverOnline;
+    return false;
   }
 
   getAuthHeader() {
@@ -171,26 +180,30 @@ class DataManager {
   }
 
   async loadApps() {
-    // 1. Try server if available
-    if (this.serverOnline) {
-      try {
-        const res = await fetch(`${this.apiBase}/apps`);
-        if (res.ok) {
-          const json = await res.json();
-          this.dataSource = json.source || (this.serverOnline ? 'server' : 'local');
-          this.updateServerStatusBadge();
-          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-            this.apps = json.data;
-            this.persistToLocalStorage();
-            return this.apps;
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to fetch from server, falling back to local storage:', err);
-      }
+    // If apps were already fetched during checkServer, return them
+    if (this.apps && this.apps.length > 0 && this.serverOnline) {
+      return this.apps;
     }
 
-    // 2. Try LocalStorage
+    // Try server / Vercel API
+    try {
+      const res = await fetch(`${this.apiBase}/apps`);
+      if (res.ok) {
+        const json = await res.json();
+        this.serverOnline = true;
+        this.dataSource = json.source || (this.serverOnline ? 'server' : 'local');
+        this.updateServerStatusBadge();
+        if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          this.apps = json.data;
+          this.persistToLocalStorage();
+          return this.apps;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch from server, checking local storage:', err);
+    }
+
+    // Fallback: LocalStorage
     const local = localStorage.getItem(this.storageKey);
     if (local) {
       try {
@@ -204,7 +217,7 @@ class DataManager {
       }
     }
 
-    // 3. Fallback to embedded seed
+    // Fallback to embedded seed
     this.apps = [...SEED_APPS];
     this.persistToLocalStorage();
     return this.apps;

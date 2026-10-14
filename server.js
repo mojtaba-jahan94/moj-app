@@ -1,5 +1,5 @@
 /**
- * Nexus Projects Hub - Lightweight Zero-Dependency Server
+ * My Apps (پروژه‌های من) - Lightweight Zero-Dependency Server
  * Built with standard Node.js libraries (http, fs, path).
  * Provides static file serving and persistent JSON API for apps management.
  */
@@ -119,7 +119,7 @@ const server = http.createServer(async (req, res) => {
     // Health check
     if (pathname === '/api/health' && req.method === 'GET') {
       res.writeHead(200);
-      res.end(JSON.stringify({ status: 'ok', server: 'Nexus Hub Node Server', timestamp: Date.now() }));
+      res.end(JSON.stringify({ status: 'ok', server: 'My Apps Node Server', timestamp: Date.now() }));
       return;
     }
 
@@ -343,7 +343,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n======================================================`);
-  console.log(`🚀 Nexus Projects Hub is live!`);
+  console.log(`🚀 My Apps (پروژه‌های من) is live!`);
   console.log(`👉 Open in browser: http://localhost:${PORT}`);
   console.log(`📦 Data storage: ${DATA_FILE}`);
   console.log(`======================================================\n`);

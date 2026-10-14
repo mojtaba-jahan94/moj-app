@@ -1,8 +1,19 @@
 /**
- * Nexus Projects Hub - Standalone Admin Portal Controller
+ * My Apps (پروژه‌های من) - Standalone Admin Portal Controller
  * Full Session Authentication (JWT + HttpOnly Cookie),
- * Dynamic Auth Gate, CRUD Operations, Category Management, and Image Handling.
+ * Dynamic Auth Gate, CRUD Operations, Auto-Screenshot Cover Generator.
  */
+
+// Automatic Homepage Screenshot Generator Helper (Microlink API with Thum.io fallback)
+function getAutoScreenshotUrl(url) {
+  if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) return '';
+  return `https://api.microlink.io/?url=${encodeURIComponent(url.trim())}&screenshot=true&meta=false&embed=screenshot.url`;
+}
+
+function getFallbackScreenshotUrl(url) {
+  if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) return '';
+  return `https://image.thum.io/get/width/800/crop/600/${encodeURIComponent(url.trim())}`;
+}
 
 window.isAdminAuthenticated = false;
 let editingAppId = null;
@@ -44,7 +55,7 @@ async function verifySession() {
   const gateLoader = document.getElementById('authGateLoader');
   const loginSection = document.getElementById('loginSection');
   const dashboard = document.getElementById('dashboardWorkspace');
-  const token = sessionStorage.getItem('nexus_admin_jwt') || '';
+  const token = sessionStorage.getItem('my_apps_admin_jwt') || sessionStorage.getItem('nexus_admin_jwt') || '';
 
   try {
     const headers = { 'Content-Type': 'application/json' };
@@ -143,7 +154,7 @@ function setupLoginForm() {
       if (res.ok && data.success) {
         // Save token to session storage
         if (data.token) {
-          sessionStorage.setItem('nexus_admin_jwt', data.token);
+          sessionStorage.setItem('my_apps_admin_jwt', data.token);
         }
         showToast(window.getLanguage() === 'fa' ? 'ورود با موفقیت انجام شد ✨' : 'Welcome back, Admin!', 'success');
         showDashboardView(data.user);
@@ -181,7 +192,9 @@ async function handleLogout() {
     console.warn('Logout API failed:', err);
   }
 
+  sessionStorage.removeItem('my_apps_admin_jwt');
   sessionStorage.removeItem('nexus_admin_jwt');
+  localStorage.removeItem('my_apps_admin_jwt');
   localStorage.removeItem('nexus_admin_jwt');
   showToast(window.getLanguage() === 'fa' ? 'از حساب کاربری خارج شدید' : 'Logged out', 'info');
   showLoginView();
@@ -260,6 +273,41 @@ function setupDashboardControls() {
   // Image file input handler (Convert to Base64)
   const imageFileInput = document.getElementById('imageFileInput');
   const customImageUrlInput = document.getElementById('appImageUrl');
+  const appUrlInput = document.getElementById('appUrl');
+  const autoScreenshotBtn = document.getElementById('autoScreenshotBtn');
+
+  const triggerAutoScreenshot = (showNotification = false) => {
+    const val = (appUrlInput?.value || '').trim();
+    if (!val || !val.startsWith('http')) {
+      if (showNotification) {
+        showToast(window.getLanguage() === 'fa' ? 'لطفاً ابتدا یک آدرس اینترنتی معتبر (با https://) وارد نمایید' : 'Please enter a valid URL (starting with https://)', 'error');
+      }
+      return;
+    }
+    const screenshotUrl = getAutoScreenshotUrl(val);
+    if (screenshotUrl) {
+      currentUploadedImageBase64 = '';
+      if (customImageUrlInput) {
+        customImageUrlInput.value = screenshotUrl;
+      }
+      updateImagePreview(screenshotUrl);
+      if (showNotification) {
+        showToast(window.getLanguage() === 'fa' ? 'اسکرین‌شات از آدرس سایت دریافت شد ✨' : 'Screenshot generated from URL ✨', 'success');
+      }
+    }
+  };
+
+  if (autoScreenshotBtn) {
+    autoScreenshotBtn.addEventListener('click', () => triggerAutoScreenshot(true));
+  }
+
+  if (appUrlInput) {
+    appUrlInput.addEventListener('blur', () => {
+      if (!currentUploadedImageBase64 && (!customImageUrlInput.value || customImageUrlInput.value.includes('microlink.io') || customImageUrlInput.value.includes('thum.io'))) {
+        triggerAutoScreenshot(false);
+      }
+    });
+  }
 
   if (imageFileInput) {
     imageFileInput.addEventListener('change', (e) => {
@@ -419,7 +467,7 @@ function renderAdminList() {
         <td class="col-title">
           <div class="table-item-title">${escapeHtml(title)}</div>
           <div class="table-item-url">
-            <a href="${escapeHtml(app.url || '#')}" target="_blank" style="color: var(--accent-cyan); text-decoration: none;">
+            <a href="${escapeHtml(app.url || '#')}" target="_blank" style="color: var(--warm-wood); text-decoration: none;">
               ${escapeHtml(app.url || '')} ↗
             </a>
           </div>
@@ -474,11 +522,15 @@ async function handleAppFormSubmit(e) {
     return;
   }
 
-  let image = 'assets/logo.jpg';
+  let image = '';
   if (currentUploadedImageBase64) {
     image = currentUploadedImageBase64;
   } else if (customImageUrl) {
     image = customImageUrl;
+  } else if (url && url.startsWith('http')) {
+    image = getAutoScreenshotUrl(url);
+  } else {
+    image = 'linear-gradient(135deg, #1F2933 0%, #323F4B 50%, #A68A64 100%)';
   }
 
   const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -686,7 +738,8 @@ function updateImagePreview(imageSrc) {
     previewBox.innerHTML = `<span class="gradient-preview-label">Gradient Preset Selected</span>`;
     previewBox.style.background = imageSrc;
   } else {
-    previewBox.innerHTML = `<img src="${imageSrc}" alt="Preview" class="cover-preview-img" onerror="this.onerror=null; this.src='assets/logo.jpg';" />`;
+    const appUrlVal = document.getElementById('appUrl')?.value?.trim() || '';
+    previewBox.innerHTML = `<img src="${imageSrc}" alt="Preview" class="cover-preview-img" onerror="if(!this.dataset.fallback && '${escapeHtml(appUrlVal)}'){this.dataset.fallback='true';this.src='https://image.thum.io/get/width/800/crop/600/' + encodeURIComponent('${escapeHtml(appUrlVal)}');}else{this.onerror=null;this.src='assets/logo.svg';}" />`;
     previewBox.style.background = 'transparent';
   }
 }
@@ -696,7 +749,7 @@ function updateImagePreview(imageSrc) {
 // ============================================================================
 
 function initTheme() {
-  const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+  const saved = localStorage.getItem('my_apps_theme') || localStorage.getItem('nexus_hub_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   updateThemeIcons(saved);
 }
@@ -713,7 +766,7 @@ function setupThemeHandler() {
         const current = document.documentElement.getAttribute('data-theme') || 'light';
         const next = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('nexus_hub_theme', next);
+        localStorage.setItem('my_apps_theme', next);
         updateThemeIcons(next);
       });
     }

@@ -25,9 +25,9 @@
 ## 🛠️ ۲. ساخت دیتابیس رایگان Turso (طی ۲ دقیقه)
 
 1. وارد سایت [turso.tech](https://turso.tech) شوید و یک حساب رایگان (با گیت‌هاب) بسازید.
-2. یک دیتابیس جدید بسازید (نام دلخواه، مثلاً: `nexus-hub-db`).
+2. یک دیتابیس جدید بسازید (نام دلخواه، مثلاً: `my-apps-db`).
 3. دو متغیر زیر را از داشبورد Turso بردارید:
-   - **Database URL**: مانند `libsql://nexus-hub-db-username.turso.io`
+   - **Database URL**: مانند `libsql://my-apps-db-username.turso.io`
    - **Auth Token**: روی دکمه *Generate Token* یا *Create Token* کلیک کنید و توکن را کپی کنید.
 
 ---

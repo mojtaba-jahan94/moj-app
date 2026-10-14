@@ -1,38 +1,30 @@
 /**
- * Internationalization (i18n) Engine for Nexus Projects Hub
+ * Internationalization (i18n) Engine for My Apps (پروژه‌های من)
  * Full Persian (fa) and English (en) support with real-time switching
  */
 
 const translations = {
   fa: {
     // Header & Brand
-    brandName: "نکسوس هاب",
-    brandSubtitle: "مرکز فرماندهی پروژه‌ها",
-    adminButton: "پنل مدیریت",
+    brandName: "پروژه‌های من",
+    brandSubtitle: "دسترسی سریع به تمام برنامه‌ها و ابزارها",
+    adminButton: "مدیریت",
     langToggle: "English",
     themeToggle: "تغییر حالت تم",
     themeLight: "حالت روشن",
     themeDark: "حالت تاریک",
     
     // Hero
-    heroBadge: "✦ ویترین یکپارچه اپلیکیشن‌ها و برنامه‌های ساخته شده",
-    heroTitlePrefix: "مرکز فرماندهی و ویترین",
-    heroTitleGradient: "تعاملی پروژه‌ها",
-    heroDesc: "به تمام وب‌اپلیکیشن‌ها، ابزارهای هوش مصنوعی، داشبوردها و نرم‌افزارهای ساخته شده در یک نگاه دسترسی داشته باشید، آن‌ها را به صورت زنده تست کنید یا سورس‌کدشان را بررسی نمایید.",
-    searchPlaceholder: "جستجو در عنوان، توضیحات یا تکنولوژی‌ها... (کلید Ctrl+K)",
+    heroTitle: "پروژه‌های من",
+    heroSubtitle: "دسترسی سریع به تمام وب‌اپلیکیشن‌ها و ابزارهای من",
+    searchPlaceholder: "جستجو در برنامه‌ها... (Ctrl+K)",
     
-    // Stats
-    statTotalApps: "کل برنامه‌ها",
-    statActiveApps: "پروژه‌های فعال",
-    statCategories: "دسته‌بندی‌ها",
-    statFavorites: "علاقه‌مندی‌ها",
-
     // Filters & Controls
-    filterAll: "همه برنامه‌ها",
-    filterAi: "هوش مصنوعی و ML",
-    filterWeb: "وب‌اپلیکیشن‌ها",
-    filterDashboards: "داشبوردها",
-    filterTools: "ابزارها و یوتیلیتی",
+    filterAll: "همه",
+    filterAi: "هوش مصنوعی",
+    filterWeb: "وب‌اپلیکیشن",
+    filterDashboards: "داشبورد",
+    filterTools: "ابزارها",
     filterFavoritesOnly: "نشان‌شده‌ها",
     
     sortLabel: "مرتب‌سازی:",
@@ -45,15 +37,15 @@ const translations = {
     viewList: "نمای فشرده",
 
     // App Card
-    statusActive: "آنلاین و فعال",
-    statusBeta: "نسخه آزمایشی (بتا)",
+    statusActive: "آنلاین",
+    statusBeta: "آزمایشی",
     statusInProgress: "در حال توسعه",
-    statusMaintenance: "تعمیر و نگهداری",
+    statusMaintenance: "تعمیر",
     
-    launchApp: "اجرای برنامه",
-    livePreview: "پیش‌نمایش زنده",
+    launchApp: "اجرا",
+    livePreview: "پیش‌نمایش",
     sourceCode: "سورس‌کد",
-    details: "جزئیات کامل",
+    details: "جزئیات",
     featuredBadge: "ویژه",
     copyUrl: "کپی آدرس",
     copiedToast: "آدرس برنامه کپی شد!",
@@ -66,7 +58,7 @@ const translations = {
     openExternal: "باز کردن در تب جدید",
     reloadPreview: "بارگذاری مجدد",
     closeModal: "بستن",
-    iframeBlockedNote: "اگر برنامه در این قاب بارگذاری نمی‌شود، ممکن است به خاطر تنظیمات امنیتی فریم سایت مقصد باشد. برای مشاهده، دکمه 'باز کردن در تب جدید' را بزنید.",
+    iframeBlockedNote: "اگر برنامه در این قاب بارگذاری نمی‌شود، دکمه 'باز کردن در تب جدید' را بزنید.",
 
     // App Details Modal
     modalTechStack: "تکنولوژی‌ها و فریم‌ورک‌ها",
@@ -76,22 +68,22 @@ const translations = {
     modalDirectLink: "آدرس دسترسی مستقیم",
 
     // Admin Panel
-    adminTitle: "پنل مدیریت هاب پروژه‌ها",
-    adminSubtitle: "افزودن برنامه‌های جدید، ویرایش اطلاعات و پشتیبان‌گیری",
+    adminTitle: "مدیریت برنامه‌ها",
+    adminSubtitle: "ثبت، ویرایش و دسته‌بندی وب‌اپلیکیشن‌ها",
     adminPinPrompt: "ورود به کنترل‌پنل مدیریت",
     adminPinPlaceholder: "رمز پیش‌فرض: 1234",
     adminPinSubmit: "ورود به مدیریت",
     adminPinError: "نام کاربری یا رمز عبور نادرست است!",
-    adminLogout: "خروج از پنل",
-    adminLoginTitle: "ورود به کنترل‌پنل مدیریت",
-    adminLoginSubtitle: "جهت مدیریت، افزودن و ویرایش برنامه‌ها وارد حساب مدیریت شوید",
+    adminLogout: "خروج",
+    adminLoginTitle: "ورود به مدیریت",
+    adminLoginSubtitle: "جهت مدیریت و ویرایش برنامه‌ها وارد حساب خود شوید",
     adminUsernameLabel: "نام کاربری",
     adminUsernamePlaceholder: "نام کاربری مدیر (پیش‌فرض: admin)",
     adminPasswordLabel: "رمز عبور",
     adminPasswordPlaceholder: "رمز عبور مدیر...",
-    adminLoginBtn: "ورود امن به پنل",
+    adminLoginBtn: "ورود به پنل",
     adminLoggedInAs: "کاربر فعال:",
-    adminViewLiveSite: "ویترین پروژه‌ها ↗",
+    adminViewLiveSite: "مشاهده سایت ↗",
     adminStatsTotal: "کل برنامه‌ها",
     adminStatsActive: "پروژه‌های فعال",
     adminStatsFeatured: "ویژه‌ها",
@@ -102,32 +94,33 @@ const translations = {
     adminEmptyList: "هیچ برنامه‌ای یافت نشد.",
 
     // Admin Tabs
-    tabAddApp: "افزودن برنامه جدید",
-    tabManageApps: "مدیریت و ویرایش برنامه‌ها",
-    tabBackupSettings: "پشتیبان‌گیری و تنظیمات",
+    tabAddApp: "ثبت برنامه جدید",
+    tabManageApps: "مدیریت و ویرایش",
+    tabBackupSettings: "پشتیبان‌گیری و داده‌ها",
 
     // Add/Edit Form Fields
     formTitleFa: "عنوان به فارسی",
     formTitleEn: "عنوان به انگلیسی",
-    formDescFa: "توضیح مختصر فارسی (کارت)",
+    formDescFa: "توضیح مختصر فارسی",
     formDescEn: "توضیح مختصر انگلیسی",
-    formLongDescFa: "توضیحات تکمیلی و امکانات (فارسی)",
-    formLongDescEn: "توضیحات تکمیلی و امکانات (انگلیسی)",
+    formLongDescFa: "توضیحات تکمیلی (فارسی)",
+    formLongDescEn: "توضیحات تکمیلی (انگلیسی)",
     formCategory: "دسته‌بندی",
-    formUrl: "آدرس اینترنتی یا مسیر محلی برنامه (URL)",
-    formGithub: "لینک گیت‌هاب یا مخزن کد (اختیاری)",
+    formUrl: "آدرس اینترنتی یا مسیر محلی برنامه (URL) *",
+    formGithub: "لینک مخزن گیت‌هاب (اختیاری)",
     formTags: "تکنولوژی‌ها (با کاما جدا کنید)",
     formTagsHint: "مثال: React, Python, FastAPI, Tailwind",
     formStatus: "وضعیت برنامه",
-    formImage: "آدرس تصویر کاور یا آپلود فایل",
+    formImage: "تصویر کاور برنامه (اسکرین‌شات خودکار، آپلود یا آدرس اینترنتی)",
+    btnAutoScreenshot: "اسکرین‌شات خودکار از آدرس سایت",
     formUploadBtn: "انتخاب فایل تصویر...",
     formImagePreset: "یا انتخاب گرادیان آماده:",
-    formFeatured: "نمایش به عنوان پروژه ویژه (Pin to Top)",
-    formAllowIframe: "اجازه پیش‌نمایش درون قاب زنده (Iframe Preview)",
+    formFeatured: "پروژه ویژه (Pin to Top)",
+    formAllowIframe: "اجازه پیش‌نمایش در قاب زنده (Iframe)",
     
     btnSaveApp: "ذخیره و ثبت برنامه",
-    btnUpdateApp: "به‌روزرسانی اطلاعات برنامه",
-    btnCancelEdit: "انصراف از ویرایش",
+    btnUpdateApp: "به‌روزرسانی اطلاعات",
+    btnCancelEdit: "انصراف",
 
     // Manage Table
     tableColTitle: "عنوان برنامه",
@@ -144,71 +137,62 @@ const translations = {
     // Backup & Sync
     backupTitle: "پشتیبان‌گیری و بازیابی داده‌ها",
     backupDesc: "می‌توانید تمام لیست برنامه‌ها را به صورت فایل JSON خروجی بگیرید یا در یک سیستم دیگر وارد نمایید.",
-    btnExportJson: "دانلود فایل پشتیبان (Export JSON)",
-    btnImportJson: "بارگذاری و بازیابی از فایل JSON",
+    btnExportJson: "دانلود فایل پشتیبان (JSON)",
+    btnImportJson: "بارگذاری و بازیابی از JSON",
     btnResetDefault: "بازنشانی نمونه‌های اولیه",
     confirmReset: "آیا مطمئن هستید؟ همه داده‌ها با نمونه‌های اولیه جایگزین خواهند شد.",
     serverStatusOnline: "متصل به سرور محلی (ذخیره مستقیم در دیسک)",
     serverStatusOffline: "حالت مرورگر (ذخیره‌سازی در LocalStorage)",
 
     // Empty States & Footer
-    noAppsFound: "هیچ برنامه‌ای با این مشخصات یافت نشد!",
-    noAppsSuggestion: "فیلترها را تغییر دهید یا در پنل ادمین برنامه جدیدی اضافه کنید.",
-    footerText: "طراحی شده با نهایت ظرافت و زیبایی • مرکز فرماندهی و ویترین تعاملی پروژه‌ها",
+    noAppsFound: "هیچ برنامه‌ای یافت نشد!",
+    noAppsSuggestion: "فیلترها را تغییر دهید یا در پنل مدیریت برنامه جدیدی اضافه کنید.",
+    footerText: "پروژه‌های من • مینیمالیسم نوردیک",
     addNewQuick: "افزودن برنامه جدید"
   },
 
   en: {
     // Header & Brand
-    brandName: "Nexus Hub",
-    brandSubtitle: "Projects Command Center",
-    adminButton: "Admin Panel",
+    brandName: "My Apps",
+    brandSubtitle: "Quick access to all my apps and tools",
+    adminButton: "Admin",
     langToggle: "فارسی",
     themeToggle: "Toggle Theme",
     themeLight: "Light Mode",
     themeDark: "Dark Mode",
-    footerText: "Designed with Nordic Minimalism • Projects Command Center",
 
     // Hero
-    heroBadge: "✦ Unified Interactive Showcase of Built Applications",
-    heroTitlePrefix: "Interactive Hub &",
-    heroTitleGradient: "Projects Showcase",
-    heroDesc: "Access all your web applications, AI tools, dashboards, and custom software in one unified command center. Test them live or inspect their architecture.",
-    searchPlaceholder: "Search by title, description or technology... (Ctrl+K)",
-
-    // Stats
-    statTotalApps: "Total Apps",
-    statActiveApps: "Active Projects",
-    statCategories: "Categories",
-    statFavorites: "Favorites",
+    heroTitle: "My Apps",
+    heroSubtitle: "Quick access to all my web applications and tools",
+    searchPlaceholder: "Search apps... (Ctrl+K)",
 
     // Filters & Controls
-    filterAll: "All Projects",
-    filterAi: "AI & Machine Learning",
-    filterWeb: "Web Applications",
+    filterAll: "All",
+    filterAi: "AI",
+    filterWeb: "Web Apps",
     filterDashboards: "Dashboards",
-    filterTools: "Tools & Utilities",
-    filterFavoritesOnly: "Bookmarked",
+    filterTools: "Tools",
+    filterFavoritesOnly: "Favorites",
 
     sortLabel: "Sort by:",
-    sortNewest: "Newest First",
-    sortOldest: "Oldest First",
-    sortTitle: "Project Name",
-    sortFeatured: "Featured First",
+    sortNewest: "Newest",
+    sortOldest: "Oldest",
+    sortTitle: "Title",
+    sortFeatured: "Featured",
 
-    viewGrid: "Grid View",
-    viewList: "Compact View",
+    viewGrid: "Grid",
+    viewList: "List",
 
     // App Card
-    statusActive: "Live & Online",
-    statusBeta: "Beta Release",
-    statusInProgress: "In Development",
+    statusActive: "Online",
+    statusBeta: "Beta",
+    statusInProgress: "In Progress",
     statusMaintenance: "Maintenance",
 
-    launchApp: "Launch App",
-    livePreview: "Live Preview",
-    sourceCode: "Source Code",
-    details: "Full Details",
+    launchApp: "Launch",
+    livePreview: "Preview",
+    sourceCode: "Code",
+    details: "Details",
     featuredBadge: "Featured",
     copyUrl: "Copy URL",
     copiedToast: "App URL copied to clipboard!",
@@ -221,7 +205,7 @@ const translations = {
     openExternal: "Open in New Tab",
     reloadPreview: "Reload",
     closeModal: "Close",
-    iframeBlockedNote: "If the app fails to load inside this frame, it might be due to external site security headers. Click 'Open in New Tab' to view.",
+    iframeBlockedNote: "If the app fails to load inside this frame, click 'Open in New Tab' to view.",
 
     // App Details Modal
     modalTechStack: "Technologies & Frameworks",
@@ -231,22 +215,22 @@ const translations = {
     modalDirectLink: "Direct Access URL",
 
     // Admin Panel
-    adminTitle: "Nexus Hub Admin Panel",
-    adminSubtitle: "Add new applications, edit project metadata and manage backups",
+    adminTitle: "Apps Management",
+    adminSubtitle: "Add, edit and organize web applications",
     adminPinPrompt: "Admin Authentication",
     adminPinPlaceholder: "Default PIN: 1234",
     adminPinSubmit: "Unlock Admin",
     adminPinError: "Incorrect username or password!",
     adminLogout: "Logout",
-    adminLoginTitle: "Admin Portal Sign-In",
-    adminLoginSubtitle: "Enter administrator credentials to access the management workspace",
+    adminLoginTitle: "Admin Sign-In",
+    adminLoginSubtitle: "Enter your credentials to access the management workspace",
     adminUsernameLabel: "Username",
     adminUsernamePlaceholder: "Admin username (default: admin)",
     adminPasswordLabel: "Password",
     adminPasswordPlaceholder: "Admin password...",
-    adminLoginBtn: "Sign In Securely",
+    adminLoginBtn: "Sign In",
     adminLoggedInAs: "Logged in as:",
-    adminViewLiveSite: "Public Showcase ↗",
+    adminViewLiveSite: "View Site ↗",
     adminStatsTotal: "Total Apps",
     adminStatsActive: "Active Apps",
     adminStatsFeatured: "Featured",
@@ -257,24 +241,25 @@ const translations = {
     adminEmptyList: "No applications found.",
 
     // Admin Tabs
-    tabAddApp: "Add New Application",
+    tabAddApp: "Add New App",
     tabManageApps: "Manage Existing Apps",
-    tabBackupSettings: "Backup & System",
+    tabBackupSettings: "Backup & Data",
 
     // Add/Edit Form Fields
     formTitleFa: "Title in Persian",
     formTitleEn: "Title in English",
     formDescFa: "Short Description (Persian)",
     formDescEn: "Short Description (English)",
-    formLongDescFa: "Extended Description & Features (Persian)",
-    formLongDescEn: "Extended Description & Features (English)",
+    formLongDescFa: "Extended Description (Persian)",
+    formLongDescEn: "Extended Description (English)",
     formCategory: "Category",
-    formUrl: "Live Application URL or Local Host Path",
+    formUrl: "Live Application URL or Local Host Path *",
     formGithub: "GitHub or Repository Link (Optional)",
     formTags: "Technologies (Comma separated)",
     formTagsHint: "e.g. React, Python, FastAPI, Tailwind",
     formStatus: "Project Status",
-    formImage: "Cover Image URL or File Upload",
+    formImage: "Cover Image (Auto-screenshot, upload or URL)",
+    btnAutoScreenshot: "Capture Screenshot from URL",
     formUploadBtn: "Choose Image File...",
     formImagePreset: "Or choose a gradient preset:",
     formFeatured: "Pin to Top as Featured Project",
@@ -282,7 +267,7 @@ const translations = {
 
     btnSaveApp: "Save & Publish App",
     btnUpdateApp: "Update Application Details",
-    btnCancelEdit: "Cancel Edit",
+    btnCancelEdit: "Cancel",
 
     // Manage Table
     tableColTitle: "Application",
@@ -299,8 +284,8 @@ const translations = {
     // Backup & Sync
     backupTitle: "Data Backup & Migration",
     backupDesc: "Export all application registry data to a JSON backup file or restore from a previously exported archive.",
-    btnExportJson: "Export All Apps (JSON)",
-    btnImportJson: "Import & Restore from JSON",
+    btnExportJson: "Download Backup (JSON)",
+    btnImportJson: "Import from JSON",
     btnResetDefault: "Restore Seed Defaults",
     confirmReset: "Are you sure? All current entries will be replaced with the default sample apps.",
     serverStatusOnline: "Connected to Local Node.js Server (Auto-persists to disk)",
@@ -309,12 +294,12 @@ const translations = {
     // Empty States & Footer
     noAppsFound: "No projects match your current filters!",
     noAppsSuggestion: "Try clearing search keywords or create a new application in the Admin Panel.",
-    footerText: "Crafted with precision & aesthetics • Unified Interactive Portfolio Hub",
+    footerText: "My Apps • Nordic Minimalism",
     addNewQuick: "Add New App"
   }
 };
 
-let currentLang = localStorage.getItem('nexus_lang') || 'fa';
+let currentLang = localStorage.getItem('my_apps_lang') || localStorage.getItem('nexus_lang') || 'fa';
 
 function getLanguage() {
   return currentLang;
@@ -330,7 +315,7 @@ function t(key) {
 function setLanguage(lang) {
   if (lang !== 'fa' && lang !== 'en') lang = 'fa';
   currentLang = lang;
-  localStorage.setItem('nexus_lang', lang);
+  localStorage.setItem('my_apps_lang', lang);
 
   // Update HTML tag attributes
   document.documentElement.lang = lang;

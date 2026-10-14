@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nexus Projects Hub - Design System & Nordic Minimalism
+   My Apps (پروژه‌های من) - Design System & Nordic Minimalism
    Strict Palette:
    --nordic-charcoal: #1F2933
    --fjord-gray:       #6B7280
@@ -317,51 +317,33 @@ body {
    ========================================================================== */
 .hero-section {
   text-align: center;
-  padding: 2.2rem 1rem 3rem 1rem;
-  max-width: 880px;
+  padding: 1.5rem 1rem 1.6rem 1rem;
+  max-width: 720px;
   margin: 0 auto;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 1.1rem;
-  background: var(--accent-tint);
-  border: 1px solid var(--warm-wood-border);
-  border-radius: var(--radius-full);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--warm-wood);
-  margin-bottom: 1.4rem;
-}
-
 .hero-title {
-  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-size: clamp(2.2rem, 4vw, 2.85rem);
   font-weight: 800;
-  line-height: 1.25;
-  margin-bottom: 1.1rem;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
-.title-gradient {
-  color: var(--warm-wood);
-}
-
 .hero-desc {
-  font-size: clamp(0.95rem, 1.8vw, 1.08rem);
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
   color: var(--text-secondary);
-  line-height: 1.7;
-  max-width: 720px;
-  margin: 0 auto 2.4rem auto;
+  line-height: 1.6;
+  max-width: 580px;
+  margin: 0 auto 1.6rem auto;
 }
 
 /* Search Box */
 .search-wrapper {
   position: relative;
-  max-width: 620px;
-  margin: 0 auto 2.5rem auto;
+  max-width: 580px;
+  margin: 0 auto 0.5rem auto;
 }
 
 .search-input-container {
@@ -632,10 +614,23 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
+.card-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-smooth);
+}
+
+.app-card:hover .card-cover-img {
+  transform: scale(1.05);
+}
+
 .card-media-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(31, 41, 51, 0.1) 0%, rgba(31, 41, 51, 0.65) 100%);
+  background: linear-gradient(180deg, rgba(31, 41, 51, 0.05) 0%, rgba(31, 41, 51, 0.55) 100%);
   pointer-events: none;
 }
 

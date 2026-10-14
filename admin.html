@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus Hub - کنترل‌پنل مدیریت برنامه‌ها (Admin Portal)</title>
-  <meta name="description" content="پنل مدیریت اختصاصی و امن نکسوس هاب جهت افزودن، ویرایش و دسته‌بندی وب‌اپلیکیشن‌ها">
+  <title>مدیریت برنامه‌ها - پروژه‌های من (My Apps Admin)</title>
+  <meta name="description" content="پنل مدیریت پروژه‌های من جهت افزودن، ویرایش و دسته‌بندی وب‌اپلیکیشن‌ها">
   <meta name="robots" content="noindex, nofollow">
 
   <!-- Early Theme Initialization -->
   <script>
     (function() {
-      const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+      const saved = localStorage.getItem('my_apps_theme') || localStorage.getItem('nexus_hub_theme') || 'light';
       document.documentElement.setAttribute('data-theme', saved);
     })();
   </script>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/animations.css">
@@ -116,10 +116,10 @@
     <!-- Top Sticky Bar -->
     <header class="admin-header-bar">
       <div class="admin-brand">
-        <img src="assets/logo.jpg" alt="Logo">
+        <img src="assets/logo.svg" alt="My Apps Logo" class="brand-logo-img">
         <div>
           <h1>
-            <span>نکسوس هاب</span>
+            <span data-i18n="brandName">پروژه‌های من</span>
             <span class="admin-badge-pill">Admin Console</span>
           </h1>
           <p style="font-size: 0.8rem; color: var(--text-secondary);" data-i18n="adminSubtitle">مدیریت کامل، ثبت پروژه‌ها و کنترل دیتابیس</p>
@@ -353,10 +353,13 @@
               <div class="tag-suggestions-row" id="popularTagsContainer"></div>
             </div>
 
-            <!-- Cover Image / Gradient Selector -->
+            <!-- Cover Image / Auto-Screenshot / Gradient Selector -->
             <div class="form-group">
-              <label data-i18n="formImage">تصویر کاور برنامه (آپلود فایل، آدرس اینترنتی یا گرادیان آماده)</label>
+              <label data-i18n="formImage">تصویر کاور برنامه (اسکرین‌شات خودکار، آپلود فایل یا گرادیان آماده)</label>
               <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <button type="button" id="autoScreenshotBtn" class="btn btn-secondary" title="دریافت خودکار اسکرین‌شات از آدرس سایت">
+                  📸 <span data-i18n="btnAutoScreenshot">اسکرین‌شات خودکار از آدرس سایت</span>
+                </button>
                 <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('imageFileInput').click()">
                   📁 <span data-i18n="formUploadBtn">انتخاب فایل تصویر...</span>
@@ -426,7 +429,7 @@
           <div class="backup-card" style="margin-top: 1.5rem;">
             <h4>درباره ذخیره‌سازی داده‌ها (Data Persistence)</h4>
             <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;">
-              نکسوس هاب از پایگاه‌داده ابری <strong>Turso (libSQL)</strong> بر روی ورسل پشتیبانی می‌کند. در صورتی که متغیرهای محیطی <code>TURSO_DATABASE_URL</code> و <code>TURSO_AUTH_TOKEN</code> تنظیم شده باشند، کلیه تغییرات مستقیماً در دیتابیس ابری ذخیره و به صورت بلادرنگ در ویترین لندینگ‌پیج منعکس خواهند شد.
+              این برنامه از پایگاه‌داده ابری <strong>Turso (libSQL)</strong> بر روی ورسل پشتیبانی می‌کند. در صورتی که متغیرهای محیطی <code>TURSO_DATABASE_URL</code> و <code>TURSO_AUTH_TOKEN</code> تنظیم شده باشند، کلیه تغییرات مستقیماً در دیتابیس ابری ذخیره و به صورت بلادرنگ در ویترین لندینگ‌پیج منعکس خواهند شد.
             </p>
           </div>
         </div>

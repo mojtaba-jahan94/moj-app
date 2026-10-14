@@ -1,5 +1,5 @@
 /**
- * Data Storage & Synchronization Manager for Nexus Projects Hub
+ * Data Storage & Synchronization Manager for My Apps (پروژه‌های من)
  * Dual-Mode: Synchronizes with Local Node.js API and Browser LocalStorage.
  * Seamless offline fallback with JSON import/export capability.
  */
@@ -120,9 +120,10 @@ class DataManager {
     this.apps = [];
     this.serverOnline = false;
     this.apiBase = window.location.origin.includes('http') ? '/api' : 'http://localhost:3000/api';
-    this.storageKey = 'nexus_hub_apps_v1';
-    this.favoritesKey = 'nexus_hub_favorites_v1';
-    this.adminPinKey = 'nexus_hub_admin_pin';
+    this.storageKey = 'my_apps_data_v1';
+    this.legacyStorageKey = 'nexus_hub_apps_v1';
+    this.favoritesKey = 'my_apps_favorites_v1';
+    this.adminPinKey = 'my_apps_admin_pin';
   }
 
   async init() {
@@ -156,7 +157,7 @@ class DataManager {
   }
 
   getAuthHeader() {
-    const token = sessionStorage.getItem('nexus_admin_jwt') || localStorage.getItem('nexus_admin_jwt') || '';
+    const token = sessionStorage.getItem('my_apps_admin_jwt') || localStorage.getItem('my_apps_admin_jwt') || sessionStorage.getItem('nexus_admin_jwt') || localStorage.getItem('nexus_admin_jwt') || '';
     const headers = { 'Content-Type': 'application/json' };
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -205,7 +206,7 @@ class DataManager {
     }
 
     // Fallback: LocalStorage
-    const local = localStorage.getItem(this.storageKey);
+    let local = localStorage.getItem(this.storageKey) || localStorage.getItem(this.legacyStorageKey);
     if (local) {
       try {
         const parsed = JSON.parse(local);
@@ -394,7 +395,7 @@ class DataManager {
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
     const dateStr = new Date().toISOString().split('T')[0];
-    downloadAnchor.setAttribute('download', `nexus-apps-backup-${dateStr}.json`);
+    downloadAnchor.setAttribute('download', `my-apps-backup-${dateStr}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();

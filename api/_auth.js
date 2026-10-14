@@ -1,5 +1,5 @@
 /**
- * Nexus Projects Hub - Authentication & JWT Helper
+ * My Apps (پروژه‌های من) - Authentication & JWT Helper
  * Built with standard Node.js crypto module (zero external dependencies).
  * Provides HS256 JWT signing, timing-safe verification, cookie serialization,
  * and request authentication middleware.
@@ -8,7 +8,7 @@
 const crypto = require('crypto');
 
 // Configuration with sensible defaults
-const JWT_SECRET = process.env.JWT_SECRET || 'nexus-hub-jwt-secret-key-2026-production-grade';
+const JWT_SECRET = process.env.JWT_SECRET || 'my-apps-jwt-secret-key-2026-production-grade';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '1234';
 const TOKEN_EXPIRY_SECONDS = 24 * 60 * 60; // 24 hours

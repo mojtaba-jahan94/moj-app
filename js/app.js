@@ -1,8 +1,31 @@
 /**
- * Nexus Projects Hub - Main Client Application Logic
- * Interactive Canvas Starfield, Filtering, 3D Card Tilt, In-App Live Previewer,
- * Details Modals, and Stats Tracker.
+ * My Apps (پروژه‌های من) - Main Client Application Logic
+ * Interactive Canvas, Filtering, 3D Tilt, Live Device Mockup,
+ * Auto-Screenshot Cover Generator, Details Modals.
  */
+
+// Automatic Homepage Screenshot Generator Helper (Microlink API with Thum.io fallback)
+function getAutoScreenshotUrl(url) {
+  if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) return '';
+  return `https://api.microlink.io/?url=${encodeURIComponent(url.trim())}&screenshot=true&meta=false&embed=screenshot.url`;
+}
+
+function getFallbackScreenshotUrl(url) {
+  if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) return '';
+  return `https://image.thum.io/get/width/800/crop/600/${encodeURIComponent(url.trim())}`;
+}
+
+function handleImageFallback(imgEl, url) {
+  if (url && !imgEl.dataset.triedFallback) {
+    imgEl.dataset.triedFallback = 'true';
+    imgEl.src = getFallbackScreenshotUrl(url);
+  } else {
+    imgEl.style.display = 'none';
+    if (imgEl.parentElement) {
+      imgEl.parentElement.style.background = 'linear-gradient(135deg, #1F2933 0%, #323F4B 50%, #A68A64 100%)';
+    }
+  }
+}
 
 let currentFilter = 'all';
 let currentSearch = '';
@@ -253,15 +276,23 @@ function openAppDetails(appId) {
   document.getElementById('detailsModalCreated').textContent = app.createdAt || '-';
   document.getElementById('detailsModalDesc').textContent = longDesc;
 
-  // Cover image / gradient
+  // Cover image / gradient / auto-screenshot
   const headerCover = document.getElementById('detailsModalCover');
   if (headerCover) {
     if (app.image && app.image.startsWith('linear-gradient')) {
       headerCover.style.background = app.image;
       headerCover.style.backgroundImage = 'none';
     } else {
-      headerCover.style.backgroundImage = `url('${app.image || 'assets/logo.jpg'}')`;
-      headerCover.style.background = 'transparent';
+      const cover = (app.image && app.image.trim()) 
+        ? app.image.trim() 
+        : (app.url && app.url.startsWith('http') ? getAutoScreenshotUrl(app.url) : '');
+      if (cover) {
+        headerCover.style.backgroundImage = `url('${cover}')`;
+        headerCover.style.background = 'transparent';
+      } else {
+        headerCover.style.background = 'linear-gradient(135deg, #1F2933 0%, #323F4B 50%, #A68A64 100%)';
+        headerCover.style.backgroundImage = 'none';
+      }
     }
   }
 
@@ -382,13 +413,19 @@ function renderAppHub() {
     const title = isFa ? app.title_fa : app.title_en;
     const desc = isFa ? app.desc_fa : app.desc_en;
     const isGradient = app.image && app.image.startsWith('linear-gradient');
-    const imageStyle = isGradient ? `background: ${app.image};` : `background-image: url('${app.image || 'assets/logo.jpg'}');`;
+    const hasCustomImage = app.image && !isGradient && app.image.trim() !== '';
+    const autoCover = !hasCustomImage && !isGradient && app.url && app.url.startsWith('http')
+      ? getAutoScreenshotUrl(app.url)
+      : '';
+    const coverSrc = hasCustomImage ? app.image : autoCover;
+    const gradientStyle = isGradient ? `background: ${app.image};` : (!coverSrc ? 'background: linear-gradient(135deg, #1F2933 0%, #323F4B 50%, #A68A64 100%);' : '');
 
     return `
       <article class="app-card glass-card ${app.featured ? 'featured' : ''}" data-id="${app.id}" onmousemove="handleCardTilt(event, this)" onmouseleave="resetCardTilt(this)">
         <div class="card-glow-overlay"></div>
         
-        <div class="card-media-wrapper" style="${imageStyle}">
+        <div class="card-media-wrapper" style="${gradientStyle}">
+          ${coverSrc ? `<img src="${coverSrc}" alt="${escapeHtml(title)}" class="card-cover-img" loading="lazy" onerror="handleImageFallback(this, '${escapeHtml(app.url || '')}')" />` : ''}
           <div class="card-media-overlay"></div>
           
           <div class="card-top-badges">
@@ -652,7 +689,7 @@ function resetFilters() {
 }
 
 function initTheme() {
-  const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+  const saved = localStorage.getItem('my_apps_theme') || localStorage.getItem('nexus_hub_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   updateThemeIcon(saved);
 }
@@ -661,7 +698,7 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'light';
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('nexus_hub_theme', next);
+  localStorage.setItem('my_apps_theme', next);
   updateThemeIcon(next);
 }
 
@@ -681,5 +718,8 @@ window.toggleFav = toggleFav;
 window.handleCardTilt = handleCardTilt;
 window.resetCardTilt = resetCardTilt;
 window.toggleTheme = toggleTheme;
+window.getAutoScreenshotUrl = getAutoScreenshotUrl;
+window.getFallbackScreenshotUrl = getFallbackScreenshotUrl;
+window.handleImageFallback = handleImageFallback;
 
 

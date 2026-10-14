@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus Hub - مرکز فرماندهی و ویترین تعاملی پروژه‌ها</title>
-  <meta name="description" content="ویترین تعاملی و مرکز دسترسی به کلیه وب‌اپلیکیشن‌ها، ابزارهای هوش مصنوعی و نرم‌افزارهای توسعه داده شده با قابلیت پیش‌نمایش زنده.">
+  <title>پروژه‌های من | My Apps</title>
+  <meta name="description" content="پروژه‌های من - دسترسی سریع و پیش‌نمایش تمام وب‌اپلیکیشن‌ها، ابزارها و نرم‌افزارها">
 
   <!-- Early Theme Initialization to prevent flash of wrong mode -->
   <script>
     (function() {
-      const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+      const saved = localStorage.getItem('my_apps_theme') || localStorage.getItem('nexus_hub_theme') || 'light';
       document.documentElement.setAttribute('data-theme', saved);
     })();
   </script>
   
   <!-- Favicon -->
-  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/animations.css">
@@ -31,10 +31,10 @@
     <!-- Top Sticky Header -->
     <header class="hub-header" id="mainHeader">
       <div class="brand-wrapper">
-        <img src="assets/logo.jpg" alt="Nexus Hub Logo" class="brand-logo-img">
+        <img src="assets/logo.svg" alt="My Apps Logo" class="brand-logo-img">
         <div class="brand-text">
-          <h1 data-i18n="brandName">نکسوس هاب</h1>
-          <p data-i18n="brandSubtitle">مرکز فرماندهی پروژه‌ها</p>
+          <h1 data-i18n="brandName">پروژه‌های من</h1>
+          <p data-i18n="brandSubtitle">دسترسی سریع به تمام برنامه‌ها و ابزارها</p>
         </div>
       </div>
 
@@ -51,21 +51,11 @@
       </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Compact Clean Hero Section -->
     <main>
       <section class="hero-section" id="heroSection">
-        <div class="hero-badge animate-float">
-          <span data-i18n="heroBadge">✦ ویترین یکپارچه اپلیکیشن‌ها و برنامه‌های ساخته شده</span>
-        </div>
-
-        <h2 class="hero-title">
-          <span data-i18n="heroTitlePrefix">مرکز فرماندهی و ویترین</span>
-          <span class="title-gradient" data-i18n="heroTitleGradient">تعاملی پروژه‌ها</span>
-        </h2>
-
-        <p class="hero-desc" data-i18n="heroDesc">
-          به تمام وب‌اپلیکیشن‌ها، ابزارهای هوش مصنوعی، داشبوردها و نرم‌افزارهای ساخته شده در یک نگاه دسترسی داشته باشید، آن‌ها را به صورت زنده تست کنید یا سورس‌کدشان را بررسی نمایید.
-        </p>
+        <h2 class="hero-title" data-i18n="heroTitle">پروژه‌های من</h2>
+        <p class="hero-desc" data-i18n="heroSubtitle">دسترسی سریع به تمام وب‌اپلیکیشن‌ها و ابزارهای من</p>
 
         <!-- Live Instant Search Bar -->
         <div class="search-wrapper">
@@ -75,32 +65,12 @@
               type="text" 
               id="hubSearchInput" 
               class="search-input" 
-              placeholder="جستجو در عنوان، توضیحات یا تکنولوژی‌ها... (کلید Ctrl+K)"
+              placeholder="جستجو در برنامه‌ها... (Ctrl+K)"
               data-i18n-placeholder="searchPlaceholder"
               autocomplete="off"
             >
             <button id="clearSearchBtn" class="clear-search-btn hidden" title="پاک کردن جستجو">✕</button>
             <span class="kbd-shortcut">Ctrl+K</span>
-          </div>
-        </div>
-
-        <!-- Quick Statistics Counter Row -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-number" id="statTotalAppsCount">0</div>
-            <div class="stat-label" data-i18n="statTotalApps">کل برنامه‌ها</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statActiveAppsCount">0</div>
-            <div class="stat-label" data-i18n="statActiveApps">پروژه‌های فعال</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statCategoriesCount">0</div>
-            <div class="stat-label" data-i18n="statCategories">دسته‌بندی‌ها</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statFavoritesCount">0</div>
-            <div class="stat-label" data-i18n="statFavorites">علاقه‌مندی‌ها</div>
           </div>
         </div>
       </section>
@@ -109,23 +79,23 @@
       <section class="toolbar-section" id="toolbarSection">
         <div class="filter-pills-row" id="filterPillsRow">
           <button class="filter-pill active" data-filter="all">
-            <span data-i18n="filterAll">همه برنامه‌ها</span>
+            <span data-i18n="filterAll">همه</span>
             <span class="filter-count">0</span>
           </button>
           <button class="filter-pill" data-filter="ai">
-            <span data-i18n="filterAi">هوش مصنوعی و ML</span>
+            <span data-i18n="filterAi">هوش مصنوعی</span>
             <span class="filter-count">0</span>
           </button>
           <button class="filter-pill" data-filter="web">
-            <span data-i18n="filterWeb">وب‌اپلیکیشن‌ها</span>
+            <span data-i18n="filterWeb">وب‌اپلیکیشن</span>
             <span class="filter-count">0</span>
           </button>
           <button class="filter-pill" data-filter="dashboards">
-            <span data-i18n="filterDashboards">داشبوردها</span>
+            <span data-i18n="filterDashboards">داشبورد</span>
             <span class="filter-count">0</span>
           </button>
           <button class="filter-pill" data-filter="tools">
-            <span data-i18n="filterTools">ابزارها و یوتیلیتی</span>
+            <span data-i18n="filterTools">ابزارها</span>
             <span class="filter-count">0</span>
           </button>
           <button class="filter-pill" data-filter="favorites">
@@ -146,7 +116,7 @@
             </select>
           </div>
 
-          <!-- View Layout Switcher -->
+          <!-- View Toggle (Grid / List) -->
           <div class="view-toggle-group">
             <button id="viewGridBtn" class="view-toggle-btn active" title="نمای شبکه‌ای" data-i18n-title="viewGrid">
               ⊞
@@ -168,7 +138,7 @@
 
     <!-- Footer -->
     <footer class="hub-footer">
-      <p data-i18n="footerText">طراحی شده با الهام از مینیمالیسم نوردیک • مرکز فرماندهی و ویترین پروژه‌ها</p>
+      <p data-i18n="footerText">پروژه‌های من • مینیمالیسم نوردیک</p>
     </footer>
 
   </div>
@@ -178,14 +148,14 @@
        ========================================================================== -->
   <div id="previewModal" class="modal-overlay">
     <div class="modal-container preview-modal-dialog modal-animate">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <h3 id="previewModalTitle" data-i18n="previewTitle">پیش‌نمایش زنده اپلیکیشن</h3>
+      <div class="preview-modal-header">
+        <div class="preview-header-left">
+          <span class="preview-dot green"></span>
+          <h3 id="previewModalTitle" class="preview-title" data-i18n="previewTitle">پیش‌نمایش زنده اپلیکیشن</h3>
         </div>
 
-        <div class="preview-toolbar">
-          <!-- Device viewport toggle -->
-          <div class="device-switcher">
+        <div class="preview-device-switch">
+          <div class="device-buttons-group">
             <button class="device-btn active" data-device="desktop" data-i18n="deviceDesktop">دسکتاپ</button>
             <button class="device-btn" data-device="tablet" data-i18n="deviceTablet">تبلت</button>
             <button class="device-btn" data-device="mobile" data-i18n="deviceMobile">موبایل</button>
@@ -217,27 +187,26 @@
           <!-- Live Iframe -->
           <iframe id="previewIframe" class="preview-iframe" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
         </div>
-        <p class="preview-notice" data-i18n="iframeBlockedNote">اگر برنامه در این قاب بارگذاری نمی‌شود، ممکن است به خاطر تنظیمات امنیتی فریم سایت مقصد باشد. برای مشاهده، دکمه 'باز کردن در تب جدید' را بزنید.</p>
+        <p class="preview-notice" data-i18n="iframeBlockedNote">اگر برنامه در این قاب بارگذاری نمی‌شود، دکمه 'باز کردن در تب جدید' را بزنید.</p>
       </div>
     </div>
   </div>
 
   <!-- ==========================================================================
-       MODAL 2: Full Application Details Modal
+       MODAL 2: Full App Details & Tech Specs Modal
        ========================================================================== -->
   <div id="detailsModal" class="modal-overlay">
     <div class="modal-container details-modal-dialog modal-animate">
-      <div id="detailsModalCover" class="details-modal-cover">
-        <button id="closeDetailsBtn" class="close-modal-btn" style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">✕</button>
-      </div>
-
+      <button id="closeDetailsBtn" class="close-modal-btn" style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">✕</button>
+      <div id="detailsModalCover" class="details-modal-cover"></div>
+      
       <div class="details-modal-body">
         <h3 id="detailsModalTitle" style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.8rem;"></h3>
-
+        
         <div class="details-meta-grid">
           <div class="meta-item">
             <label data-i18n="modalCategory">دسته‌بندی</label>
-            <span id="detailsModalCategory" class="category-chip"></span>
+            <span id="detailsModalCategory" class="meta-val"></span>
           </div>
           <div class="meta-item">
             <label data-i18n="modalStatus">وضعیت پروژه</label>
@@ -245,20 +214,22 @@
           </div>
           <div class="meta-item">
             <label data-i18n="modalCreatedDate">تاریخ ثبت</label>
-            <span id="detailsModalCreated"></span>
+            <span id="detailsModalCreated" class="meta-val"></span>
           </div>
         </div>
 
-        <div class="details-desc-box" id="detailsModalDesc"></div>
+        <div class="details-desc-box">
+          <p id="detailsModalDesc"></p>
+        </div>
 
-        <div class="details-tags-wrap">
+        <div class="details-tags-row">
           <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;" data-i18n="modalTechStack">تکنولوژی‌ها و فریم‌ورک‌ها</label>
           <div id="detailsModalTags" class="card-tags"></div>
         </div>
 
         <div class="details-footer-actions">
           <a id="detailsLaunchBtn" href="#" target="_blank" class="btn btn-primary">
-            <span>🚀</span> <span data-i18n="launchApp">اجرای برنامه</span>
+            <span>🚀</span> <span data-i18n="launchApp">اجرا</span>
           </a>
           <a id="detailsGithubBtn" href="#" target="_blank" class="btn btn-secondary">
             <span>🐙</span> <span data-i18n="sourceCode">سورس‌کد</span>

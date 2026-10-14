@@ -1,88 +1,214 @@
 /**
- * Admin Panel Controller for Nexus Projects Hub
- * Handles Authentication, App CRUD, Image Conversions, Presets, and Data Import/Export.
+ * Nexus Projects Hub - Standalone Admin Portal Controller
+ * Full Session Authentication (JWT + HttpOnly Cookie),
+ * Dynamic Auth Gate, CRUD Operations, Category Management, and Image Handling.
  */
 
-window.isAdminOpen = false;
+window.isAdminAuthenticated = false;
 let editingAppId = null;
 let currentUploadedImageBase64 = '';
+let currentSearchQuery = '';
+let currentCategoryFilter = 'all';
+let currentSortOrder = 'newest';
 
-// Preset Gradients for Quick App Covers
+// Preset Gradients for Quick App Covers (Nordic & Warm Wood Harmony)
 const PRESET_GRADIENTS = [
-  { name: 'Cyber Violet', value: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%)' },
-  { name: 'Neon Emerald', value: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #06b6d4 100%)' },
-  { name: 'Ocean Cyan', value: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #3b82f6 100%)' },
-  { name: 'Solar Flare', value: 'linear-gradient(135deg, #ea580c 0%, #f59e0b 50%, #e11d48 100%)' },
-  { name: 'Dark Nebula', value: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)' },
-  { name: 'Matrix Glass', value: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)' }
+  { name: 'Warm Wood & Cream', value: 'linear-gradient(135deg, #A68A64 0%, #C4AE8F 50%, #F7F7F2 100%)' },
+  { name: 'Nordic Charcoal', value: 'linear-gradient(135deg, #1F2933 0%, #323F4B 50%, #52606D 100%)' },
+  { name: 'Fjord Slate', value: 'linear-gradient(135deg, #3E4C59 0%, #616E7C 50%, #9AA5B1 100%)' },
+  { name: 'Amber Timber', value: 'linear-gradient(135deg, #8A6D47 0%, #A68A64 50%, #D4AF7A 100%)' },
+  { name: 'Birch & Stone', value: 'linear-gradient(135deg, #25313D 0%, #475569 50%, #A68A64 100%)' },
+  { name: 'Arctic Dawn', value: 'linear-gradient(135deg, #1F2933 0%, #6B7280 50%, #D1D5DB 100%)' }
 ];
 
 // Quick suggestions for tech tags
-const POPULAR_TAGS = ['React', 'Next.js', 'Vue 3', 'TypeScript', 'Node.js', 'Python', 'FastAPI', 'Tailwind', 'Docker', 'SQLite', 'MongoDB', 'AI API'];
+const POPULAR_TAGS = ['React', 'Next.js', 'Vue 3', 'TypeScript', 'Node.js', 'Python', 'FastAPI', 'Tailwind', 'Docker', 'SQLite', 'Turso', 'AI API'];
 
-document.addEventListener('DOMContentLoaded', () => {
-  setupAdminEventListeners();
-  renderPresetGradients();
-  renderPopularTagSuggestions();
+document.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
+  initBackgroundCanvas();
+  setupLanguageHandler();
+  setupThemeHandler();
+  setupLoginForm();
+  setupDashboardControls();
+
+  // Run Auth Verification Gate on startup
+  await verifySession();
 });
 
-function setupAdminEventListeners() {
-  const adminBtn = document.getElementById('openAdminBtn');
-  const adminModal = document.getElementById('adminModal');
-  const closeAdminBtn = document.getElementById('closeAdminBtn');
-  const authPinModal = document.getElementById('authPinModal');
-  const closePinModal = document.getElementById('closePinModal');
-  const pinForm = document.getElementById('pinForm');
-  const pinInput = document.getElementById('pinInput');
-  const adminAppForm = document.getElementById('adminAppForm');
-  const cancelEditBtn = document.getElementById('cancelEditBtn');
-  const imageFileInput = document.getElementById('imageFileInput');
-  const customImageUrlInput = document.getElementById('appImageUrl');
+// ============================================================================
+// 1. AUTHENTICATION GATE & SESSION VERIFICATION
+// ============================================================================
 
-  // Open Admin Trigger
-  if (adminBtn) {
-    adminBtn.addEventListener('click', () => {
-      // Check if session is already authenticated
-      if (sessionStorage.getItem('nexus_admin_authenticated') === 'true') {
-        openAdminModal();
-      } else {
-        openPinModal();
+async function verifySession() {
+  const gateLoader = document.getElementById('authGateLoader');
+  const loginSection = document.getElementById('loginSection');
+  const dashboard = document.getElementById('dashboardWorkspace');
+  const token = sessionStorage.getItem('nexus_admin_jwt') || '';
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch('/api/auth?action=verify', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated) {
+        showDashboardView(data.user);
+        return;
       }
-    });
+    }
+  } catch (err) {
+    console.warn('Session verification check failed:', err);
   }
 
-  // Pin verification form
-  if (pinForm) {
-    pinForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const entered = pinInput.value.trim();
-      const actual = window.dataManager.getAdminPin();
-      const pinError = document.getElementById('pinError');
+  // Not authenticated: Show ONLY the login screen
+  showLoginView();
+}
 
-      // Store in session for API requests
-      sessionStorage.setItem('nexus_admin_pin', entered);
-      sessionStorage.setItem('nexus_admin_authenticated', 'true');
-      closePinModalFunc();
-      openAdminModal();
-      pinInput.value = '';
-      if (pinError) pinError.classList.add('hidden');
-      showToast(window.t('adminTitle') + ' ✓', 'success');
-    });
+function showLoginView() {
+  window.isAdminAuthenticated = false;
+  const gateLoader = document.getElementById('authGateLoader');
+  const loginSection = document.getElementById('loginSection');
+  const dashboard = document.getElementById('dashboardWorkspace');
+
+  if (gateLoader) gateLoader.style.display = 'none';
+  if (dashboard) dashboard.style.display = 'none';
+  if (loginSection) {
+    loginSection.style.display = 'flex';
+    const userInput = document.getElementById('loginUsername');
+    if (userInput) userInput.focus();
+  }
+}
+
+function showDashboardView(user) {
+  window.isAdminAuthenticated = true;
+  const gateLoader = document.getElementById('authGateLoader');
+  const loginSection = document.getElementById('loginSection');
+  const dashboard = document.getElementById('dashboardWorkspace');
+  const activeUserEl = document.getElementById('activeUsername');
+
+  if (gateLoader) gateLoader.style.display = 'none';
+  if (loginSection) loginSection.style.display = 'none';
+  if (dashboard) dashboard.style.display = 'block';
+
+  if (activeUserEl && user && user.username) {
+    activeUserEl.textContent = user.username;
   }
 
-  if (closePinModal) {
-    closePinModal.addEventListener('click', closePinModalFunc);
-  }
+  // Initialize and populate dashboard data
+  initDashboardData();
+}
 
-  if (closeAdminBtn) {
-    closeAdminBtn.addEventListener('click', closeAdminModal);
-  }
+function setupLoginForm() {
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginSubmitBtn');
+  const loginError = document.getElementById('loginError');
+  const loginErrorText = document.getElementById('loginErrorText');
 
-  // Close modals on outside click
-  window.addEventListener('click', (e) => {
-    if (e.target === adminModal) closeAdminModal();
-    if (e.target === authPinModal) closePinModalFunc();
+  if (!loginForm) return;
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+
+    if (!username || !password) return;
+
+    // Loading state
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = `<span>⏳</span> <span>${window.getLanguage() === 'fa' ? 'در حال بررسی...' : 'Authenticating...'}</span>`;
+    }
+    if (loginError) loginError.classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Save token to session storage
+        if (data.token) {
+          sessionStorage.setItem('nexus_admin_jwt', data.token);
+        }
+        showToast(window.getLanguage() === 'fa' ? 'ورود با موفقیت انجام شد ✨' : 'Welcome back, Admin!', 'success');
+        showDashboardView(data.user);
+      } else {
+        if (loginError) {
+          loginError.classList.remove('hidden');
+          if (loginErrorText) {
+            loginErrorText.textContent = data.error || (window.getLanguage() === 'fa' ? 'نام کاربری یا رمز عبور اشتباه است' : 'Invalid credentials');
+          }
+        }
+      }
+    } catch (err) {
+      if (loginError) {
+        loginError.classList.remove('hidden');
+        if (loginErrorText) {
+          loginErrorText.textContent = 'خطای اتصال به سرور: ' + err.message;
+        }
+      }
+    } finally {
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = `<span>⚡</span> <span data-i18n="adminLoginBtn">${window.t('adminLoginBtn')}</span>`;
+      }
+    }
   });
+}
+
+async function handleLogout() {
+  try {
+    await fetch('/api/auth?action=logout', {
+      method: 'POST',
+      credentials: 'same-origin'
+    });
+  } catch (err) {
+    console.warn('Logout API failed:', err);
+  }
+
+  sessionStorage.removeItem('nexus_admin_jwt');
+  localStorage.removeItem('nexus_admin_jwt');
+  showToast(window.getLanguage() === 'fa' ? 'از حساب کاربری خارج شدید' : 'Logged out', 'info');
+  showLoginView();
+}
+
+// ============================================================================
+// 2. DASHBOARD DATA & CRUD OPERATIONS
+// ============================================================================
+
+async function initDashboardData() {
+  renderPresetGradients();
+  renderPopularTagSuggestions();
+
+  if (window.dataManager) {
+    await window.dataManager.init();
+    renderAdminList();
+    updateAdminStats();
+    window.dataManager.updateServerStatusBadge();
+  }
+}
+
+function setupDashboardControls() {
+  // Logout button
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
 
   // Admin Tab Navigation
   document.querySelectorAll('.admin-tab-btn').forEach(btn => {
@@ -92,20 +218,61 @@ function setupAdminEventListeners() {
     });
   });
 
-  // Image file upload handler (Convert to Base64)
+  // Search input filter
+  const searchInput = document.getElementById('adminSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value.toLowerCase().trim();
+      renderAdminList();
+    });
+  }
+
+  // Category select filter
+  const categoryFilter = document.getElementById('adminCategoryFilter');
+  if (categoryFilter) {
+    categoryFilter.addEventListener('change', (e) => {
+      currentCategoryFilter = e.target.value;
+      renderAdminList();
+    });
+  }
+
+  // Sort select filter
+  const sortFilter = document.getElementById('adminSortFilter');
+  if (sortFilter) {
+    sortFilter.addEventListener('change', (e) => {
+      currentSortOrder = e.target.value;
+      renderAdminList();
+    });
+  }
+
+  // App Form submission
+  const adminAppForm = document.getElementById('adminAppForm');
+  if (adminAppForm) {
+    adminAppForm.addEventListener('submit', handleAppFormSubmit);
+  }
+
+  // Cancel edit button
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', resetAppForm);
+  }
+
+  // Image file input handler (Convert to Base64)
+  const imageFileInput = document.getElementById('imageFileInput');
+  const customImageUrlInput = document.getElementById('appImageUrl');
+
   if (imageFileInput) {
     imageFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
       if (!file.type.startsWith('image/')) {
-        showToast('Please select a valid image file', 'error');
+        showToast('لطفاً یک فایل تصویری معتبر انتخاب کنید', 'error');
         return;
       }
 
-      // Check size limit (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        showToast('Image file too large! Please choose an image under 5MB.', 'error');
+        showToast('حجم فایل تصویر بیش از ۵ مگابایت است!', 'error');
         return;
       }
 
@@ -119,7 +286,6 @@ function setupAdminEventListeners() {
     });
   }
 
-  // Live URL input changes
   if (customImageUrlInput) {
     customImageUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
@@ -130,25 +296,18 @@ function setupAdminEventListeners() {
     });
   }
 
-  // Form Submission (Add / Edit)
-  if (adminAppForm) {
-    adminAppForm.addEventListener('submit', handleAppFormSubmit);
-  }
-
-  if (cancelEditBtn) {
-    cancelEditBtn.addEventListener('click', resetAppForm);
-  }
-
-  // Export JSON
+  // JSON Export
   const exportBtn = document.getElementById('exportJsonBtn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      window.dataManager.exportJsonFile();
-      showToast('JSON Backup downloaded!', 'success');
+      if (window.dataManager) {
+        window.dataManager.exportJsonFile();
+        showToast('فایل پشتیبان دانلود شد / Backup downloaded', 'success');
+      }
     });
   }
 
-  // Import JSON
+  // JSON Import
   const importInput = document.getElementById('importJsonInput');
   if (importInput) {
     importInput.addEventListener('change', handleImportJson);
@@ -161,74 +320,10 @@ function setupAdminEventListeners() {
       if (confirm(window.t('confirmReset'))) {
         await window.dataManager.resetToDefaults();
         renderAdminList();
-        if (window.renderAppHub) window.renderAppHub();
-        showToast('Restored default projects!', 'success');
+        updateAdminStats();
+        showToast('نمونه‌های پیش‌فرض بازنشانی شدند / Restored default projects', 'success');
       }
     });
-  }
-
-  // Change PIN Form
-  const changePinForm = document.getElementById('changePinForm');
-  if (changePinForm) {
-    changePinForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const currentPinInput = document.getElementById('currentPinInput').value.trim();
-      const newPinInput = document.getElementById('newPinInput').value.trim();
-      const actualPin = window.dataManager.getAdminPin();
-
-      if (currentPinInput !== actualPin) {
-        showToast(window.t('adminPinError'), 'error');
-        return;
-      }
-
-      if (newPinInput.length < 3) {
-        showToast('PIN must be at least 3 characters', 'error');
-        return;
-      }
-
-      window.dataManager.setAdminPin(newPinInput);
-      changePinForm.reset();
-      showToast('Admin PIN updated successfully!', 'success');
-    });
-  }
-}
-
-function openPinModal() {
-  const modal = document.getElementById('authPinModal');
-  const pinInput = document.getElementById('pinInput');
-  const pinError = document.getElementById('pinError');
-  if (modal) {
-    modal.classList.add('active');
-    if (pinInput) {
-      pinInput.value = '';
-      setTimeout(() => pinInput.focus(), 150);
-    }
-    if (pinError) pinError.classList.add('hidden');
-  }
-}
-
-function closePinModalFunc() {
-  const modal = document.getElementById('authPinModal');
-  if (modal) modal.classList.remove('active');
-}
-
-function openAdminModal() {
-  const modal = document.getElementById('adminModal');
-  if (modal) {
-    modal.classList.add('active');
-    window.isAdminOpen = true;
-    switchAdminTab('addApp');
-    renderAdminList();
-    window.dataManager.updateServerStatusBadge();
-  }
-}
-
-function closeAdminModal() {
-  const modal = document.getElementById('adminModal');
-  if (modal) {
-    modal.classList.remove('active');
-    window.isAdminOpen = false;
-    resetAppForm();
   }
 }
 
@@ -242,8 +337,297 @@ function switchAdminTab(tabId) {
 
   if (tabId === 'manageApps') {
     renderAdminList();
+    updateAdminStats();
   }
 }
+
+function updateAdminStats() {
+  if (!window.dataManager) return;
+  const apps = window.dataManager.getAll();
+
+  const totalEl = document.getElementById('statTotalApps');
+  const activeEl = document.getElementById('statActiveApps');
+  const featuredEl = document.getElementById('statFeaturedApps');
+  const categoriesEl = document.getElementById('statCategoriesCount');
+
+  if (totalEl) totalEl.textContent = apps.length;
+  if (activeEl) activeEl.textContent = apps.filter(a => a.status === 'active').length;
+  if (featuredEl) featuredEl.textContent = apps.filter(a => a.featured).length;
+
+  const uniqueCategories = new Set(apps.map(a => a.category).filter(Boolean));
+  if (categoriesEl) categoriesEl.textContent = uniqueCategories.size || 4;
+}
+
+function renderAdminList() {
+  const container = document.getElementById('adminAppsTableBody');
+  const countBadge = document.getElementById('adminAppsCount');
+  if (!container || !window.dataManager) return;
+
+  let apps = [...window.dataManager.getAll()];
+  if (countBadge) countBadge.textContent = apps.length;
+
+  // Filter by category
+  if (currentCategoryFilter !== 'all') {
+    apps = apps.filter(a => a.category === currentCategoryFilter);
+  }
+
+  // Filter by search query
+  if (currentSearchQuery) {
+    apps = apps.filter(app => {
+      const fa = (app.title_fa || '') + ' ' + (app.desc_fa || '');
+      const en = (app.title_en || '') + ' ' + (app.desc_en || '');
+      const tags = Array.isArray(app.tags) ? app.tags.join(' ') : '';
+      const url = app.url || '';
+      const haystack = (fa + ' ' + en + ' ' + tags + ' ' + url).toLowerCase();
+      return haystack.includes(currentSearchQuery);
+    });
+  }
+
+  // Sort apps
+  if (currentSortOrder === 'featured') {
+    apps.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  } else if (currentSortOrder === 'title') {
+    apps.sort((a, b) => (a.title_fa || a.title_en || '').localeCompare(b.title_fa || b.title_en || ''));
+  } else {
+    // Newest first by default
+    apps.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }
+
+  if (apps.length === 0) {
+    container.innerHTML = `
+      <tr>
+        <td colspan="5" class="table-empty" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+          🔍 ${window.t('adminEmptyList')}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const isFa = window.getLanguage() === 'fa';
+
+  container.innerHTML = apps.map(app => {
+    const title = isFa ? app.title_fa : (app.title_en || app.title_fa);
+    const isGradient = app.image && app.image.startsWith('linear-gradient');
+    const thumbStyle = isGradient ? `background: ${app.image};` : `background-image: url('${app.image || 'assets/logo.jpg'}');`;
+
+    return `
+      <tr class="admin-table-row" data-id="${app.id}">
+        <td class="col-thumb">
+          <div class="table-thumb" style="${thumbStyle}"></div>
+        </td>
+        <td class="col-title">
+          <div class="table-item-title">${escapeHtml(title)}</div>
+          <div class="table-item-url">
+            <a href="${escapeHtml(app.url || '#')}" target="_blank" style="color: var(--accent-cyan); text-decoration: none;">
+              ${escapeHtml(app.url || '')} ↗
+            </a>
+          </div>
+        </td>
+        <td class="col-cat">
+          <span class="category-chip category-${app.category}">${app.category}</span>
+          ${app.featured ? `<span class="featured-indicator" title="پروژه ویژه">★</span>` : ''}
+        </td>
+        <td class="col-status">
+          <span class="status-indicator status-${app.status}">${window.t('status' + capitalize(app.status))}</span>
+        </td>
+        <td class="col-actions">
+          <button class="btn-action edit" onclick="startEditApp('${app.id}')" title="${window.t('btnEdit')}">
+            ✏️
+          </button>
+          <button class="btn-action duplicate" onclick="duplicateApp('${app.id}')" title="${window.t('btnDuplicate')}">
+            📋
+          </button>
+          <button class="btn-action delete" onclick="confirmDeleteApp('${app.id}')" title="${window.t('btnDelete')}">
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ============================================================================
+// 3. APP FORM (CREATE & EDIT)
+// ============================================================================
+
+async function handleAppFormSubmit(e) {
+  e.preventDefault();
+
+  const titleFa = document.getElementById('appTitleFa').value.trim();
+  const titleEn = document.getElementById('appTitleEn').value.trim();
+  const descFa = document.getElementById('appDescFa').value.trim();
+  const descEn = document.getElementById('appDescEn').value.trim();
+  const longDescFa = document.getElementById('appLongDescFa').value.trim();
+  const longDescEn = document.getElementById('appLongDescEn').value.trim();
+  const category = document.getElementById('appCategory').value;
+  const url = document.getElementById('appUrl').value.trim();
+  const github = document.getElementById('appGithub').value.trim();
+  const tagsRaw = document.getElementById('appTags').value.trim();
+  const status = document.getElementById('appStatus').value;
+  const customImageUrl = document.getElementById('appImageUrl').value.trim();
+  const featured = document.getElementById('appFeatured').checked;
+  const allowIframe = document.getElementById('appAllowIframe').checked;
+
+  if (!titleFa && !titleEn) {
+    showToast('لطفاً عنوان برنامه را به فارسی یا انگلیسی وارد نمایید', 'error');
+    return;
+  }
+
+  let image = 'assets/logo.jpg';
+  if (currentUploadedImageBase64) {
+    image = currentUploadedImageBase64;
+  } else if (customImageUrl) {
+    image = customImageUrl;
+  }
+
+  const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  const appData = {
+    id: editingAppId || undefined,
+    title_fa: titleFa || titleEn,
+    title_en: titleEn || titleFa,
+    desc_fa: descFa || descEn,
+    desc_en: descEn || descFa,
+    long_desc_fa: longDescFa || descFa,
+    long_desc_en: longDescEn || descEn,
+    category,
+    tags,
+    url: url || '#',
+    github: github || '',
+    image,
+    status,
+    featured,
+    allowIframe,
+    createdAt: editingAppId ? (window.dataManager.getById(editingAppId)?.createdAt || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]
+  };
+
+  try {
+    await window.dataManager.saveApp(appData);
+    showToast(editingAppId ? window.t('savedSuccess') : 'پروژه جدید با موفقیت ثبت شد! 🎉', 'success');
+
+    resetAppForm();
+    renderAdminList();
+    updateAdminStats();
+    switchAdminTab('manageApps');
+  } catch (err) {
+    showToast('خطا در ذخیره برنامه: ' + err.message, 'error');
+  }
+}
+
+function startEditApp(appId) {
+  const app = window.dataManager.getById(appId);
+  if (!app) return;
+
+  editingAppId = appId;
+
+  document.getElementById('appTitleFa').value = app.title_fa || '';
+  document.getElementById('appTitleEn').value = app.title_en || '';
+  document.getElementById('appDescFa').value = app.desc_fa || '';
+  document.getElementById('appDescEn').value = app.desc_en || '';
+  document.getElementById('appLongDescFa').value = app.long_desc_fa || '';
+  document.getElementById('appLongDescEn').value = app.long_desc_en || '';
+  document.getElementById('appCategory').value = app.category || 'web';
+  document.getElementById('appUrl').value = app.url || '';
+  document.getElementById('appGithub').value = app.github || '';
+  document.getElementById('appTags').value = (app.tags || []).join(', ');
+  document.getElementById('appStatus').value = app.status || 'active';
+  document.getElementById('appFeatured').checked = !!app.featured;
+  document.getElementById('appAllowIframe').checked = app.allowIframe !== false;
+
+  currentUploadedImageBase64 = app.image || '';
+  document.getElementById('appImageUrl').value = (app.image && !app.image.startsWith('data:') && !app.image.startsWith('linear-gradient')) ? app.image : '';
+  updateImagePreview(app.image);
+
+  const submitBtn = document.getElementById('saveAppBtn');
+  const cancelBtn = document.getElementById('cancelEditBtn');
+  const formTitle = document.getElementById('formModeTitle');
+
+  if (submitBtn) submitBtn.innerHTML = `<span>💾</span> ${window.t('btnUpdateApp')}`;
+  if (cancelBtn) cancelBtn.classList.remove('hidden');
+  if (formTitle) formTitle.textContent = `${window.t('btnEdit')}: ${window.getLanguage() === 'fa' ? app.title_fa : app.title_en}`;
+
+  switchAdminTab('addApp');
+}
+
+function resetAppForm() {
+  editingAppId = null;
+  const form = document.getElementById('adminAppForm');
+  if (form) form.reset();
+
+  currentUploadedImageBase64 = '';
+  updateImagePreview('');
+
+  const submitBtn = document.getElementById('saveAppBtn');
+  const cancelBtn = document.getElementById('cancelEditBtn');
+  const formTitle = document.getElementById('formModeTitle');
+
+  if (submitBtn) submitBtn.innerHTML = `<span>✨</span> <span data-i18n="btnSaveApp">${window.t('btnSaveApp')}</span>`;
+  if (cancelBtn) cancelBtn.classList.add('hidden');
+  if (formTitle) formTitle.textContent = window.t('tabAddApp');
+}
+
+async function duplicateApp(appId) {
+  const original = window.dataManager.getById(appId);
+  if (!original) return;
+
+  const copy = JSON.parse(JSON.stringify(original));
+  copy.id = undefined;
+  copy.title_fa = copy.title_fa + ' (کپی)';
+  copy.title_en = copy.title_en + ' (Copy)';
+  copy.createdAt = new Date().toISOString().split('T')[0];
+
+  try {
+    await window.dataManager.saveApp(copy);
+    renderAdminList();
+    updateAdminStats();
+    showToast('پروژه تکثیر شد / Project duplicated', 'success');
+  } catch (err) {
+    showToast('خطا در تکثیر: ' + err.message, 'error');
+  }
+}
+
+async function confirmDeleteApp(appId) {
+  if (confirm(window.t('confirmDelete'))) {
+    try {
+      await window.dataManager.deleteApp(appId);
+      renderAdminList();
+      updateAdminStats();
+      showToast(window.t('deletedSuccess'), 'info');
+    } catch (err) {
+      showToast('خطا در حذف پروژه: ' + err.message, 'error');
+    }
+  }
+}
+
+async function handleImportJson(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    try {
+      const parsed = JSON.parse(event.target.result);
+      const apps = Array.isArray(parsed) ? parsed : (parsed.apps || []);
+      if (!Array.isArray(apps) || apps.length === 0) {
+        throw new Error('فرمت فایل JSON نامعتبر است');
+      }
+
+      await window.dataManager.importApps(apps);
+      renderAdminList();
+      updateAdminStats();
+      showToast(`موفقیت: ${apps.length} برنامه بازیابی شد!`, 'success');
+      e.target.value = '';
+    } catch (err) {
+      showToast('خطا در بارگذاری فایل: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ============================================================================
+// 4. IMAGE HANDLING & PRESETS
+// ============================================================================
 
 function renderPresetGradients() {
   const container = document.getElementById('presetGradientsContainer');
@@ -307,229 +691,54 @@ function updateImagePreview(imageSrc) {
   }
 }
 
-async function handleAppFormSubmit(e) {
-  e.preventDefault();
+// ============================================================================
+// 5. UTILITIES (TOASTS, BACKGROUND, LANGUAGE)
+// ============================================================================
 
-  const titleFa = document.getElementById('appTitleFa').value.trim();
-  const titleEn = document.getElementById('appTitleEn').value.trim();
-  const descFa = document.getElementById('appDescFa').value.trim();
-  const descEn = document.getElementById('appDescEn').value.trim();
-  const longDescFa = document.getElementById('appLongDescFa').value.trim();
-  const longDescEn = document.getElementById('appLongDescEn').value.trim();
-  const category = document.getElementById('appCategory').value;
-  const url = document.getElementById('appUrl').value.trim();
-  const github = document.getElementById('appGithub').value.trim();
-  const tagsRaw = document.getElementById('appTags').value.trim();
-  const status = document.getElementById('appStatus').value;
-  const customImageUrl = document.getElementById('appImageUrl').value.trim();
-  const featured = document.getElementById('appFeatured').checked;
-  const allowIframe = document.getElementById('appAllowIframe').checked;
-
-  if (!titleFa && !titleEn) {
-    showToast('Please provide a title in Persian or English', 'error');
-    return;
-  }
-
-  // Determine cover image
-  let image = 'assets/logo.jpg';
-  if (currentUploadedImageBase64) {
-    image = currentUploadedImageBase64;
-  } else if (customImageUrl) {
-    image = customImageUrl;
-  }
-
-  const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-  const appData = {
-    id: editingAppId || undefined,
-    title_fa: titleFa || titleEn,
-    title_en: titleEn || titleFa,
-    desc_fa: descFa || descEn,
-    desc_en: descEn || descFa,
-    long_desc_fa: longDescFa || descFa,
-    long_desc_en: longDescEn || descEn,
-    category,
-    tags,
-    url: url || '#',
-    github: github || '',
-    image,
-    status,
-    featured,
-    allowIframe,
-    createdAt: editingAppId ? (window.dataManager.getById(editingAppId)?.createdAt || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]
-  };
-
-  await window.dataManager.saveApp(appData);
-
-  showToast(editingAppId ? window.t('savedSuccess') : 'برنامه جدید با موفقیت اضافه شد! 🎉', 'success');
-
-  resetAppForm();
-  renderAdminList();
-  if (window.renderAppHub) window.renderAppHub();
-
-  // Switch to manage tab so user sees the newly saved item
-  switchAdminTab('manageApps');
+function initTheme() {
+  const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcons(saved);
 }
 
-function startEditApp(appId) {
-  const app = window.dataManager.getById(appId);
-  if (!app) return;
+function setupThemeHandler() {
+  const toggleButtons = [
+    document.getElementById('themeToggleBtn'),
+    document.getElementById('loginThemeToggleBtn')
+  ];
 
-  editingAppId = appId;
-
-  document.getElementById('appTitleFa').value = app.title_fa || '';
-  document.getElementById('appTitleEn').value = app.title_en || '';
-  document.getElementById('appDescFa').value = app.desc_fa || '';
-  document.getElementById('appDescEn').value = app.desc_en || '';
-  document.getElementById('appLongDescFa').value = app.long_desc_fa || '';
-  document.getElementById('appLongDescEn').value = app.long_desc_en || '';
-  document.getElementById('appCategory').value = app.category || 'web';
-  document.getElementById('appUrl').value = app.url || '';
-  document.getElementById('appGithub').value = app.github || '';
-  document.getElementById('appTags').value = (app.tags || []).join(', ');
-  document.getElementById('appStatus').value = app.status || 'active';
-  document.getElementById('appFeatured').checked = !!app.featured;
-  document.getElementById('appAllowIframe').checked = app.allowIframe !== false;
-
-  currentUploadedImageBase64 = app.image || '';
-  document.getElementById('appImageUrl').value = (app.image && !app.image.startsWith('data:') && !app.image.startsWith('linear-gradient')) ? app.image : '';
-  updateImagePreview(app.image);
-
-  // Update button texts
-  const submitBtn = document.getElementById('saveAppBtn');
-  const cancelBtn = document.getElementById('cancelEditBtn');
-  const formTitle = document.getElementById('formModeTitle');
-
-  if (submitBtn) submitBtn.innerHTML = `<span>💾</span> ${window.t('btnUpdateApp')}`;
-  if (cancelBtn) cancelBtn.classList.remove('hidden');
-  if (formTitle) formTitle.textContent = `${window.t('btnEdit')}: ${window.getLanguage() === 'fa' ? app.title_fa : app.title_en}`;
-
-  switchAdminTab('addApp');
+  toggleButtons.forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('nexus_hub_theme', next);
+        updateThemeIcons(next);
+      });
+    }
+  });
 }
 
-function resetAppForm() {
-  editingAppId = null;
-  const form = document.getElementById('adminAppForm');
-  if (form) form.reset();
-
-  currentUploadedImageBase64 = '';
-  updateImagePreview('');
-
-  const submitBtn = document.getElementById('saveAppBtn');
-  const cancelBtn = document.getElementById('cancelEditBtn');
-  const formTitle = document.getElementById('formModeTitle');
-
-  if (submitBtn) submitBtn.innerHTML = `<span>✨</span> ${window.t('btnSaveApp')}`;
-  if (cancelBtn) cancelBtn.classList.add('hidden');
-  if (formTitle) formTitle.textContent = window.t('tabAddApp');
+function updateThemeIcons(theme) {
+  document.querySelectorAll('.theme-btn .theme-icon').forEach(icon => {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  });
 }
 
-function renderAdminList() {
-  const container = document.getElementById('adminAppsTableBody');
-  const countBadge = document.getElementById('adminAppsCount');
-  if (!container) return;
+function setupLanguageHandler() {
+  const langToggleBtn = document.getElementById('langToggleBtn');
+  const loginLangBtn = document.getElementById('loginLangToggleBtn');
 
-  const apps = window.dataManager.getAll();
-  if (countBadge) countBadge.textContent = apps.length;
-
-  if (apps.length === 0) {
-    container.innerHTML = `
-      <tr>
-        <td colspan="5" class="table-empty">
-          ${window.t('noAppsFound')}
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  const isFa = window.getLanguage() === 'fa';
-
-  container.innerHTML = apps.map(app => {
-    const title = isFa ? app.title_fa : app.title_en;
-    const isGradient = app.image && app.image.startsWith('linear-gradient');
-    const thumbStyle = isGradient ? `background: ${app.image};` : `background-image: url('${app.image || 'assets/logo.jpg'}');`;
-
-    return `
-      <tr class="admin-table-row" data-id="${app.id}">
-        <td class="col-thumb">
-          <div class="table-thumb" style="${thumbStyle}"></div>
-        </td>
-        <td class="col-title">
-          <div class="table-item-title">${escapeHtml(title)}</div>
-          <div class="table-item-url">${escapeHtml(app.url || '')}</div>
-        </td>
-        <td class="col-cat">
-          <span class="category-chip category-${app.category}">${app.category}</span>
-          ${app.featured ? `<span class="featured-indicator">★</span>` : ''}
-        </td>
-        <td class="col-status">
-          <span class="status-indicator status-${app.status}">${window.t('status' + capitalize(app.status))}</span>
-        </td>
-        <td class="col-actions">
-          <button class="btn-action edit" onclick="startEditApp('${app.id}')" title="${window.t('btnEdit')}">
-            ✏️
-          </button>
-          <button class="btn-action duplicate" onclick="duplicateApp('${app.id}')" title="${window.t('btnDuplicate')}">
-            📋
-          </button>
-          <button class="btn-action delete" onclick="confirmDeleteApp('${app.id}')" title="${window.t('btnDelete')}">
-            🗑️
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-}
-
-async function duplicateApp(appId) {
-  const original = window.dataManager.getById(appId);
-  if (!original) return;
-
-  const copy = JSON.parse(JSON.stringify(original));
-  copy.id = undefined;
-  copy.title_fa = copy.title_fa + ' (کپی)';
-  copy.title_en = copy.title_en + ' (Copy)';
-  copy.createdAt = new Date().toISOString().split('T')[0];
-
-  await window.dataManager.saveApp(copy);
-  renderAdminList();
-  if (window.renderAppHub) window.renderAppHub();
-  showToast('پروژه تکثیر شد / Project duplicated', 'success');
-}
-
-async function confirmDeleteApp(appId) {
-  if (confirm(window.t('confirmDelete'))) {
-    await window.dataManager.deleteApp(appId);
-    renderAdminList();
-    if (window.renderAppHub) window.renderAppHub();
-    showToast(window.t('deletedSuccess'), 'info');
-  }
-}
-
-async function handleImportJson(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = async (event) => {
-    try {
-      const parsed = JSON.parse(event.target.result);
-      const apps = Array.isArray(parsed) ? parsed : (parsed.apps || []);
-      if (!Array.isArray(apps) || apps.length === 0) {
-        throw new Error('Invalid JSON format: expected an array of apps');
-      }
-
-      await window.dataManager.importApps(apps);
+  const onToggle = () => {
+    window.toggleLanguage();
+    if (window.isAdminAuthenticated) {
       renderAdminList();
-      if (window.renderAppHub) window.renderAppHub();
-      showToast(`موفقیت: ${apps.length} برنامه بازیابی شد!`, 'success');
-      e.target.value = '';
-    } catch (err) {
-      showToast('خطا در فایل JSON: ' + err.message, 'error');
     }
   };
-  reader.readAsText(file);
+
+  if (langToggleBtn) langToggleBtn.addEventListener('click', onToggle);
+  if (loginLangBtn) loginLangBtn.addEventListener('click', onToggle);
 }
 
 function showToast(message, type = 'info') {
@@ -570,11 +779,65 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// Expose functions globally for inline HTML handlers
+function initBackgroundCanvas() {
+  const canvas = document.getElementById('bgCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+
+  window.addEventListener('resize', () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  });
+
+  const particles = [];
+  const count = Math.floor((width * height) / 18000);
+
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      radius: Math.random() * 1.5 + 0.6,
+      isWarm: Math.random() > 0.65
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    for (let p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x < 0) p.x = width;
+      if (p.x > width) p.x = 0;
+      if (p.y < 0) p.y = height;
+      if (p.y > height) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      if (p.isWarm) {
+        ctx.fillStyle = isDark ? 'rgba(166, 138, 100, 0.45)' : 'rgba(166, 138, 100, 0.35)';
+      } else {
+        ctx.fillStyle = isDark ? 'rgba(209, 213, 219, 0.25)' : 'rgba(107, 114, 128, 0.25)';
+      }
+      ctx.fill();
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+
+// Global functions for inline HTML handlers
 window.startEditApp = startEditApp;
 window.duplicateApp = duplicateApp;
 window.confirmDeleteApp = confirmDeleteApp;
+window.switchAdminTab = switchAdminTab;
 window.showToast = showToast;
-window.openAdminModal = openAdminModal;
-window.closeAdminModal = closeAdminModal;
 window.renderAdminList = renderAdminList;

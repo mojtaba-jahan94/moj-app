@@ -11,6 +11,9 @@ let currentView = 'grid'; // 'grid' | 'list'
 let activePreviewUrl = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize Theme (Default Light Mode or saved preference)
+  initTheme();
+
   // Initialize i18n
   window.setLanguage(window.getLanguage());
 
@@ -28,6 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupAppEventListeners() {
+  // Theme Toggle Button
+  const themeBtn = document.getElementById('themeToggleBtn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', toggleTheme);
+  }
+
   // Language Switch Button
   const langBtn = document.getElementById('langToggleBtn');
   if (langBtn) {
@@ -59,44 +68,8 @@ function setupAppEventListeners() {
     }
   }
 
-  // Admin Button Stealth Mode on Production / Vercel
-  const urlParams = new URLSearchParams(window.location.search);
-  const isAdminParam = urlParams.has('admin');
-  const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const adminBtn = document.getElementById('openAdminBtn');
-
-  if (adminBtn && !isLocalHost && !isAdminParam) {
-    adminBtn.style.display = 'none'; // Hidden from public visitors on production!
-  }
-
-  // Triple-Click Logo Easter Egg to Trigger Admin Panel
-  let logoClicks = 0;
-  let logoTimer = null;
-  const brandLogo = document.querySelector('.brand-logo-img');
-  if (brandLogo) {
-    brandLogo.style.cursor = 'pointer';
-    brandLogo.addEventListener('click', () => {
-      logoClicks++;
-      clearTimeout(logoTimer);
-      if (logoClicks >= 3) {
-        logoClicks = 0;
-        if (adminBtn) adminBtn.style.display = 'inline-flex';
-        document.getElementById('openAdminBtn')?.click();
-      } else {
-        logoTimer = setTimeout(() => { logoClicks = 0; }, 700);
-      }
-    });
-  }
-
-  // Keyboard shortcut: Ctrl+K to search, Ctrl+Shift+A to open Admin, Esc to close
+  // Keyboard shortcut: Ctrl+K or / to search, Esc to close modals
   window.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
-      e.preventDefault();
-      if (adminBtn) adminBtn.style.display = 'inline-flex';
-      document.getElementById('openAdminBtn')?.click();
-      return;
-    }
-
     if ((e.ctrlKey && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
       e.preventDefault();
       if (searchInput) searchInput.focus();
@@ -224,7 +197,6 @@ function closeAllModals() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
   const iframe = document.getElementById('previewIframe');
   if (iframe) iframe.src = 'about:blank';
-  window.isAdminOpen = false;
 }
 
 // Open In-App Device Preview Modal
@@ -394,9 +366,9 @@ function renderAppHub() {
       <div class="empty-state-card glass-panel">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title" data-i18n="noAppsFound">${window.t('noAppsFound')}</h3>
-        <p class="empty-desc" data-i18n="noAppsSuggestion">${window.t('noAppsSuggestion')}</p>
-        <button class="btn btn-primary" onclick="window.openAdminModal()">
-          <span>+</span> <span data-i18n="addNewQuick">${window.t('addNewQuick')}</span>
+        <p class="empty-desc">${isFa ? 'نتیجه‌ای یافت نشد. می‌توانید با دکمه زیر تمام پروژه‌ها را مجدداً مشاهده نمایید.' : 'No projects found. You can reset filters to view all projects.'}</p>
+        <button class="btn btn-secondary" onclick="resetFilters()">
+          <span>🔄</span> <span>${isFa ? 'نمایش همه پروژه‌ها' : 'Show All Projects'}</span>
         </button>
       </div>
     `;
@@ -525,7 +497,7 @@ function handleCardTilt(e, card) {
 
   const glow = card.querySelector('.card-glow-overlay');
   if (glow) {
-    glow.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(124, 58, 237, 0.18), transparent 60%)`;
+    glow.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(166, 138, 100, 0.12), transparent 60%)`;
   }
 }
 
@@ -569,19 +541,26 @@ function initInteractiveCanvas() {
     constructor() {
       this.x = Math.random() * width;
       this.y = Math.random() * height;
-      this.size = Math.random() * 2 + 1;
+      this.size = Math.random() * 1.8 + 0.8;
       this.baseX = this.x;
       this.baseY = this.y;
       this.density = Math.random() * 20 + 5;
-      this.vx = (Math.random() - 0.5) * 0.4;
-      this.vy = (Math.random() - 0.5) * 0.4;
-      this.color = Math.random() > 0.6 ? 'rgba(124, 58, 237, 0.6)' : (Math.random() > 0.5 ? 'rgba(6, 182, 212, 0.6)' : 'rgba(147, 197, 253, 0.4)');
+      this.vx = (Math.random() - 0.5) * 0.35;
+      this.vy = (Math.random() - 0.5) * 0.35;
+      this.isWarm = Math.random() > 0.65;
     }
 
-    draw() {
+    getColor(isDark) {
+      if (this.isWarm) {
+        return isDark ? 'rgba(166, 138, 100, 0.45)' : 'rgba(166, 138, 100, 0.35)';
+      }
+      return isDark ? 'rgba(209, 213, 219, 0.25)' : 'rgba(107, 114, 128, 0.25)';
+    }
+
+    draw(isDark) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = this.getColor(isDark);
       ctx.fill();
     }
 
@@ -599,8 +578,8 @@ function initInteractiveCanvas() {
         let distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < mouse.radius) {
           const force = (mouse.radius - distance) / mouse.radius;
-          const directionX = (dx / distance) * force * this.density * 0.4;
-          const directionY = (dy / distance) * force * this.density * 0.4;
+          const directionX = (dx / distance) * force * this.density * 0.35;
+          const directionY = (dy / distance) * force * this.density * 0.35;
           this.x -= directionX;
           this.y -= directionY;
         }
@@ -608,28 +587,30 @@ function initInteractiveCanvas() {
     }
   }
 
-  const particleCount = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 12000), 90);
+  const particleCount = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 14000), 75);
   for (let i = 0; i < particleCount; i++) {
     particles.push(new Particle());
   }
 
   function animate() {
     ctx.clearRect(0, 0, width, height);
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
     for (let i = 0; i < particles.length; i++) {
       particles[i].update();
-      particles[i].draw();
+      particles[i].draw(isDark);
 
-      // Connect nearby particles
+      // Connect nearby particles with subtle Nordic line
       for (let j = i + 1; j < particles.length; j++) {
         let dx = particles[i].x - particles[j].x;
         let dy = particles[i].y - particles[j].y;
         let distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 95) {
+        if (distance < 90) {
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(139, 92, 246, ${0.15 * (1 - distance / 95)})`;
-          ctx.lineWidth = 0.7;
+          const lineAlpha = (1 - distance / 90) * (isDark ? 0.18 : 0.22);
+          ctx.strokeStyle = isDark ? `rgba(209, 213, 219, ${lineAlpha})` : `rgba(107, 114, 128, ${lineAlpha})`;
+          ctx.lineWidth = 0.6;
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
           ctx.stroke();
@@ -657,10 +638,48 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+function resetFilters() {
+  currentSearch = '';
+  currentFilter = 'all';
+  const searchInput = document.getElementById('hubSearchInput');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
+  if (searchInput) searchInput.value = '';
+  if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+  document.querySelectorAll('.filter-pill').forEach(p => {
+    p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
+  });
+  renderAppHub();
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('nexus_hub_theme', next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  const icon = document.querySelector('#themeToggleBtn .theme-icon');
+  if (icon) {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+}
+
 // Global exports
 window.renderAppHub = renderAppHub;
+window.resetFilters = resetFilters;
 window.openLivePreview = openLivePreview;
 window.openAppDetails = openAppDetails;
 window.toggleFav = toggleFav;
 window.handleCardTilt = handleCardTilt;
 window.resetCardTilt = resetCardTilt;
+window.toggleTheme = toggleTheme;
+
+

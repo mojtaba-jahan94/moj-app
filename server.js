@@ -8,6 +8,14 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const {
+  signToken,
+  validateCredentials,
+  verifyRequest,
+  getAuthCookie,
+  getClearCookie,
+  ADMIN_USERNAME
+} = require('./api/_auth');
 
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'apps.json');
@@ -57,8 +65,14 @@ function writeApps(apps) {
 }
 
 // Set standard CORS & JSON headers
-function setCorsHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function setCorsHeaders(req, res) {
+  const origin = req.headers['origin'] || '*';
+  if (origin && origin !== '*') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
@@ -87,7 +101,7 @@ function parseRequestBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
-  setCorsHeaders(res);
+  setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -109,12 +123,92 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Get all apps
+    // Auth endpoints: /api/auth
+    if (pathname === '/api/auth') {
+      const action = (parsedUrl.query?.action || '').toLowerCase();
+      const isSecure = false;
+
+      // Verify Session
+      if (action === 'verify' || (req.method === 'GET' && !action)) {
+        const payload = verifyRequest(req);
+        if (payload) {
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            success: true,
+            authenticated: true,
+            user: { username: payload.username || ADMIN_USERNAME, role: 'admin' }
+          }));
+          return;
+        }
+        res.writeHead(401);
+        res.end(JSON.stringify({ success: false, authenticated: false, error: 'Unauthorized' }));
+        return;
+      }
+
+      // Logout
+      if (action === 'logout') {
+        res.setHeader('Set-Cookie', getClearCookie(isSecure));
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, authenticated: false, message: 'Logged out successfully' }));
+        return;
+      }
+
+      // Login
+      if (req.method === 'POST') {
+        try {
+          const body = await parseRequestBody(req);
+          const { username, password } = body;
+          if (!username || !password) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ success: false, error: 'Username and password required' }));
+            return;
+          }
+
+          if (!validateCredentials(username, password)) {
+            await new Promise(r => setTimeout(r, 200));
+            res.writeHead(401);
+            res.end(JSON.stringify({ success: false, error: 'Invalid username or password' }));
+            return;
+          }
+
+          const token = signToken({ username, role: 'admin' });
+          res.setHeader('Set-Cookie', getAuthCookie(token, isSecure));
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            success: true,
+            authenticated: true,
+            message: 'Authentication successful',
+            token,
+            user: { username, role: 'admin' }
+          }));
+          return;
+        } catch (err) {
+          res.writeHead(500);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+          return;
+        }
+      }
+
+      res.writeHead(405);
+      res.end(JSON.stringify({ success: false, error: 'Method not allowed' }));
+      return;
+    }
+
+    // Apps API: Get all apps (Public - Read-Only)
     if (pathname === '/api/apps' && req.method === 'GET') {
       const apps = readApps();
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, count: apps.length, data: apps }));
       return;
+    }
+
+    // Security Check: All write operations on /api/apps require admin JWT
+    if (pathname.startsWith('/api/apps') && req.method !== 'GET') {
+      if (!verifyRequest(req)) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ success: false, error: 'Unauthorized: Valid Admin session or token required' }));
+        return;
+      }
     }
 
     // Create a new app
@@ -133,7 +227,7 @@ const server = http.createServer(async (req, res) => {
         }
         newApp.createdAt = newApp.createdAt || new Date().toISOString().split('T')[0];
 
-        // Insert at beginning or end
+        // Insert at beginning
         apps.unshift(newApp);
         writeApps(apps);
 
@@ -162,8 +256,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Update or Delete specific app by ID: /api/apps/:id
-    const idMatch = pathname.match(/^\/api\/apps\/([a-zA-Z0-9_-]+)$/);
-    if (idMatch) {
+    const idMatch = pathname.match(/^\/api\/apps\/([a-zA-Z0-9_-]+)$/) || (parsedUrl.query?.id ? [null, parsedUrl.query.id] : null);
+    if (idMatch && (req.method === 'PUT' || req.method === 'DELETE')) {
       const appId = idMatch[1];
       const apps = readApps();
       const index = apps.findIndex(a => a.id === appId);
@@ -203,7 +297,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   // --- STATIC FILE SERVING ---
-  let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
+  let reqPath = pathname === '/' ? 'index.html' : pathname;
+  if (reqPath === '/admin' || reqPath === '/admin/') {
+    reqPath = 'admin.html';
+  }
+  let filePath = path.join(__dirname, reqPath);
 
   // Security check: avoid directory traversal
   if (!filePath.startsWith(__dirname)) {

@@ -1,10 +1,18 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nexus Hub - مرکز فرماندهی و ویترین تعاملی پروژه‌ها</title>
-  <meta name="description" content="ویترین تعاملی و مرکز دسترسی به کلیه وب‌اپلیکیشن‌ها، ابزارهای هوش مصنوعی و نرم‌افزارهای توسعه داده شده با قابلیت پیش‌نمایش زنده و پنل مدیریت کامل.">
+  <meta name="description" content="ویترین تعاملی و مرکز دسترسی به کلیه وب‌اپلیکیشن‌ها، ابزارهای هوش مصنوعی و نرم‌افزارهای توسعه داده شده با قابلیت پیش‌نمایش زنده.">
+
+  <!-- Early Theme Initialization to prevent flash of wrong mode -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
   
   <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
@@ -15,18 +23,13 @@
 </head>
 <body class="lang-fa">
 
-  <!-- Interactive Starfield Particle Canvas -->
+  <!-- Minimalist Nordic Particle Canvas -->
   <canvas id="bgCanvas"></canvas>
-
-  <!-- Ambient Glowing Blobs -->
-  <div class="ambient-glow ambient-glow-1"></div>
-  <div class="ambient-glow ambient-glow-2"></div>
-  <div class="ambient-glow ambient-glow-3"></div>
 
   <div class="app-wrapper">
 
     <!-- Top Sticky Header -->
-    <header class="hub-header glass-panel" id="mainHeader">
+    <header class="hub-header" id="mainHeader">
       <div class="brand-wrapper">
         <img src="assets/logo.jpg" alt="Nexus Hub Logo" class="brand-logo-img">
         <div class="brand-text">
@@ -36,15 +39,14 @@
       </div>
 
       <div class="header-actions">
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" class="theme-btn" title="تغییر حالت تم / Toggle Theme" aria-label="Toggle Theme">
+          <span class="theme-icon">🌙</span>
+        </button>
+
         <!-- Language Switcher -->
         <button id="langToggleBtn" class="lang-btn" title="تغییر زبان / Switch Language">
           <span id="langBtnText" data-i18n="langToggle">English</span>
-        </button>
-
-        <!-- Admin Panel Trigger -->
-        <button id="openAdminBtn" class="btn btn-primary" title="پنل ادمین">
-          <span>⚡</span>
-          <span data-i18n="adminButton">پنل مدیریت</span>
         </button>
       </div>
     </header>
@@ -84,19 +86,19 @@
 
         <!-- Quick Statistics Counter Row -->
         <div class="stats-grid">
-          <div class="stat-card glass-panel">
-            <div class="stat-number" id="statTotalAppsCount">6</div>
+          <div class="stat-card">
+            <div class="stat-number" id="statTotalAppsCount">0</div>
             <div class="stat-label" data-i18n="statTotalApps">کل برنامه‌ها</div>
           </div>
-          <div class="stat-card glass-panel">
-            <div class="stat-number" id="statActiveAppsCount">4</div>
+          <div class="stat-card">
+            <div class="stat-number" id="statActiveAppsCount">0</div>
             <div class="stat-label" data-i18n="statActiveApps">پروژه‌های فعال</div>
           </div>
-          <div class="stat-card glass-panel">
-            <div class="stat-number" id="statCategoriesCount">4</div>
+          <div class="stat-card">
+            <div class="stat-number" id="statCategoriesCount">0</div>
             <div class="stat-label" data-i18n="statCategories">دسته‌بندی‌ها</div>
           </div>
-          <div class="stat-card glass-panel">
+          <div class="stat-card">
             <div class="stat-number" id="statFavoritesCount">0</div>
             <div class="stat-label" data-i18n="statFavorites">علاقه‌مندی‌ها</div>
           </div>
@@ -104,7 +106,7 @@
       </section>
 
       <!-- Category Filter Pills and Layout Controls Toolbar -->
-      <section class="toolbar-section glass-panel" id="toolbarSection">
+      <section class="toolbar-section" id="toolbarSection">
         <div class="filter-pills-row" id="filterPillsRow">
           <button class="filter-pill active" data-filter="all">
             <span data-i18n="filterAll">همه برنامه‌ها</span>
@@ -166,7 +168,7 @@
 
     <!-- Footer -->
     <footer class="hub-footer">
-      <p data-i18n="footerText">طراحی شده با نهایت ظرافت و زیبایی • مرکز فرماندهی و ویترین تعاملی پروژه‌ها</p>
+      <p data-i18n="footerText">طراحی شده با الهام از مینیمالیسم نوردیک • مرکز فرماندهی و ویترین پروژه‌ها</p>
     </footer>
 
   </div>
@@ -206,9 +208,9 @@
           <!-- Browser Mockup Chrome -->
           <div class="preview-browser-chrome">
             <div class="chrome-dots">
-              <span class="chrome-dot red"></span>
-              <span class="chrome-dot yellow"></span>
-              <span class="chrome-dot green"></span>
+              <span class="chrome-dot"></span>
+              <span class="chrome-dot"></span>
+              <span class="chrome-dot"></span>
             </div>
             <div class="chrome-address-bar" id="chromeAddressBar">https://preview.app</div>
           </div>
@@ -250,7 +252,7 @@
         <div class="details-desc-box" id="detailsModalDesc"></div>
 
         <div class="details-tags-wrap">
-          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.5rem;" data-i18n="modalTechStack">تکنولوژی‌ها و فریم‌ورک‌ها</label>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;" data-i18n="modalTechStack">تکنولوژی‌ها و فریم‌ورک‌ها</label>
           <div id="detailsModalTags" class="card-tags"></div>
         </div>
 
@@ -269,262 +271,12 @@
     </div>
   </div>
 
-  <!-- ==========================================================================
-       MODAL 3: Admin Passcode / PIN Protection Dialog
-       ========================================================================== -->
-  <div id="authPinModal" class="modal-overlay">
-    <div class="modal-container pin-dialog modal-animate">
-      <div class="pin-icon">🔐</div>
-      <h3 data-i18n="adminPinPrompt" style="margin-bottom: 0.5rem;">ورود به پنل مدیریت</h3>
-      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem;" data-i18n="adminPinPlaceholder">رمز پیش‌فرض: 1234</p>
-
-      <form id="pinForm">
-        <input 
-          type="password" 
-          id="pinInput" 
-          class="form-input pin-input" 
-          maxlength="8" 
-          placeholder="••••" 
-          required 
-          autocomplete="off"
-        >
-        <p id="pinError" class="pin-error hidden" data-i18n="adminPinError">رمز عبور نادرست است!</p>
-        
-        <div style="display: flex; gap: 0.6rem; justify-content: center; margin-top: 1rem;">
-          <button type="submit" class="btn btn-primary" style="flex: 1;">
-            <span data-i18n="adminPinSubmit">ورود به مدیریت</span>
-          </button>
-          <button type="button" id="closePinModal" class="btn btn-secondary">
-            <span data-i18n="closeModal">انصراف</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ==========================================================================
-       MODAL 4: Full Admin Management Panel
-       ========================================================================== -->
-  <div id="adminModal" class="modal-overlay">
-    <div class="modal-container admin-modal-dialog modal-animate">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <h3 data-i18n="adminTitle">پنل مدیریت هاب پروژه‌ها</h3>
-          <p data-i18n="adminSubtitle">افزودن برنامه‌های جدید، ویرایش اطلاعات و پشتیبان‌گیری</p>
-        </div>
-        <button id="closeAdminBtn" class="close-modal-btn" title="بستن">✕</button>
-      </div>
-
-      <!-- Admin Tab Navigation -->
-      <nav class="admin-nav-tabs">
-        <button class="admin-tab-btn active" data-tab="addApp">
-          <span>+</span> <span id="formModeTitle" data-i18n="tabAddApp">افزودن برنامه جدید</span>
-        </button>
-        <button class="admin-tab-btn" data-tab="manageApps">
-          <span>📑</span> <span data-i18n="tabManageApps">مدیریت و ویرایش برنامه‌ها</span> (<span id="adminAppsCount">0</span>)
-        </button>
-        <button class="admin-tab-btn" data-tab="backupSettings">
-          <span>⚙️</span> <span data-i18n="tabBackupSettings">پشتیبان‌گیری و تنظیمات</span>
-        </button>
-      </nav>
-
-      <div class="admin-body">
-        <!-- TAB 1: ADD / EDIT APP FORM -->
-        <div id="tabContent_addApp" class="admin-tab-content active">
-          <form id="adminAppForm">
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="appTitleFa" data-i18n="formTitleFa">عنوان به فارسی *</label>
-                <input type="text" id="appTitleFa" class="form-input" placeholder="مثال: بات هوشمند تلگرام" required>
-              </div>
-              <div class="form-group">
-                <label for="appTitleEn" data-i18n="formTitleEn">عنوان به انگلیسی</label>
-                <input type="text" id="appTitleEn" class="form-input" placeholder="e.g. Telegram AI Bot">
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="appDescFa" data-i18n="formDescFa">توضیح مختصر فارسی (روی کارت)</label>
-                <input type="text" id="appDescFa" class="form-input" placeholder="توضیح کوتاه ۱ یا ۲ خطی">
-              </div>
-              <div class="form-group">
-                <label for="appDescEn" data-i18n="formDescEn">توضیح مختصر انگلیسی</label>
-                <input type="text" id="appDescEn" class="form-input" placeholder="Short 1-2 sentence description">
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="appLongDescFa" data-i18n="formLongDescFa">توضیحات تکمیلی و امکانات (فارسی)</label>
-                <textarea id="appLongDescFa" class="form-textarea" placeholder="شرح ویژگی‌ها، کاربرد و معماری پروژه..."></textarea>
-              </div>
-              <div class="form-group">
-                <label for="appLongDescEn" data-i18n="formLongDescEn">توضیحات تکمیلی و امکانات (انگلیسی)</label>
-                <textarea id="appLongDescEn" class="form-textarea" placeholder="Detailed features, workflow and highlights..."></textarea>
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="appUrl" data-i18n="formUrl">آدرس اینترنتی یا مسیر محلی برنامه (URL) *</label>
-                <input type="text" id="appUrl" class="form-input" placeholder="https://my-app.vercel.app یا http://localhost:5173" required>
-              </div>
-              <div class="form-group">
-                <label for="appGithub" data-i18n="formGithub">لینک گیت‌هاب یا مخزن کد (اختیاری)</label>
-                <input type="text" id="appGithub" class="form-input" placeholder="https://github.com/username/project">
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="appCategory" data-i18n="formCategory">دسته‌بندی</label>
-                <select id="appCategory" class="form-select">
-                  <option value="web">Web Application (وب‌اپلیکیشن)</option>
-                  <option value="ai">AI & Machine Learning (هوش مصنوعی)</option>
-                  <option value="dashboards">Dashboard (داشبورد و تحلیل)</option>
-                  <option value="tools">Tool & Utility (ابزار و یوتیلیتی)</option>
-                  <option value="mobile">Mobile / Desktop (موبایل و دسکتاپ)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="appStatus" data-i18n="formStatus">وضعیت برنامه</label>
-                <select id="appStatus" class="form-select">
-                  <option value="active">Active & Online (فعال و آنلاین)</option>
-                  <option value="beta">Beta Release (نسخه آزمایشی)</option>
-                  <option value="in_progress">In Development (در حال توسعه)</option>
-                  <option value="maintenance">Maintenance (در دست تعمیر)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Tech Stack Tags -->
-            <div class="form-group">
-              <label for="appTags" data-i18n="formTags">تکنولوژی‌ها (با کاما جدا کنید)</label>
-              <input type="text" id="appTags" class="form-input" placeholder="React, Python, Tailwind, FastAPI" data-i18n-placeholder="formTagsHint">
-              <div class="tag-suggestions-row" id="popularTagsContainer"></div>
-            </div>
-
-            <!-- Cover Image / Gradient Selector -->
-            <div class="form-group">
-              <label data-i18n="formImage">تصویر کاور برنامه (آپلود فایل، آدرس اینترنتی یا گرادیان آماده)</label>
-              <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
-                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('imageFileInput').click()">
-                  📁 <span data-i18n="formUploadBtn">انتخاب فایل تصویر...</span>
-                </button>
-                <input type="text" id="appImageUrl" class="form-input" style="flex: 1; min-width: 220px;" placeholder="یا آدرس اینترنتی تصویر (https://...)">
-              </div>
-
-              <!-- Gradient Presets -->
-              <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 0.4rem;" data-i18n="formImagePreset">یا انتخاب گرادیان آماده:</div>
-              <div class="gradient-presets-wrapper" id="presetGradientsContainer"></div>
-
-              <!-- Image Preview Box -->
-              <div class="image-preview-box" id="imagePreviewBox">
-                <span class="preview-placeholder">پیش‌نمایش تصویر در اینجا ظاهر می‌شود / Image preview</span>
-              </div>
-            </div>
-
-            <!-- Checkbox toggles -->
-            <div class="form-checkbox-row">
-              <label class="checkbox-label">
-                <input type="checkbox" id="appFeatured">
-                <span data-i18n="formFeatured">نمایش به عنوان پروژه ویژه (Pin to Top)</span>
-              </label>
-
-              <label class="checkbox-label">
-                <input type="checkbox" id="appAllowIframe" checked>
-                <span data-i18n="formAllowIframe">اجازه پیش‌نمایش درون قاب زنده (Iframe Preview)</span>
-              </label>
-            </div>
-
-            <!-- Form Actions -->
-            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
-              <button type="submit" id="saveAppBtn" class="btn btn-primary" style="padding: 0.75rem 2rem;">
-                <span>✨</span> <span data-i18n="btnSaveApp">ذخیره و ثبت برنامه</span>
-              </button>
-              <button type="button" id="cancelEditBtn" class="btn btn-secondary hidden">
-                <span data-i18n="btnCancelEdit">انصراف از ویرایش</span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- TAB 2: MANAGE & EDIT APPS TABLE -->
-        <div id="tabContent_manageApps" class="admin-tab-content">
-          <div class="admin-table-container">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th style="width: 60px;"></th>
-                  <th data-i18n="tableColTitle">عنوان برنامه</th>
-                  <th data-i18n="tableColCategory">دسته‌بندی</th>
-                  <th data-i18n="tableColStatus">وضعیت</th>
-                  <th data-i18n="tableColActions">عملیات</th>
-                </tr>
-              </thead>
-              <tbody id="adminAppsTableBody">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- TAB 3: BACKUP & SYSTEM SETTINGS -->
-        <div id="tabContent_backupSettings" class="admin-tab-content">
-          <div class="backup-card">
-            <h4 data-i18n="backupTitle">پشتیبان‌گیری و بازیابی داده‌ها</h4>
-            <p data-i18n="backupDesc">می‌توانید تمام لیست برنامه‌ها را به صورت فایل JSON خروجی بگیرید یا در یک سیستم دیگر وارد نمایید.</p>
-            
-            <div id="serverStatusBadge" class="status-badge offline">
-              <span class="offline-dot"></span> <span data-i18n="serverStatusOffline">حالت مرورگر (ذخیره‌سازی در LocalStorage)</span>
-            </div>
-
-            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.8rem;">
-              <button id="exportJsonBtn" class="btn btn-primary">
-                📥 <span data-i18n="btnExportJson">دانلود فایل پشتیبان (Export JSON)</span>
-              </button>
-
-              <input type="file" id="importJsonInput" accept=".json" style="display: none;">
-              <button type="button" class="btn btn-secondary" onclick="document.getElementById('importJsonInput').click()">
-                📤 <span data-i18n="btnImportJson">بارگذاری و بازیابی از فایل JSON</span>
-              </button>
-
-              <button id="resetDefaultsBtn" class="btn btn-secondary" style="color: #fca5a5;">
-                🔄 <span data-i18n="btnResetDefault">بازنشانی نمونه‌های اولیه</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Change PIN Card -->
-          <div class="backup-card">
-            <h4>تغییر رمز عبور پنل مدیریت (Admin PIN)</h4>
-            <p>رمز فعلی و رمز جدید مورد نظر خود را وارد کنید.</p>
-
-            <form id="changePinForm" style="max-width: 380px;">
-              <div class="form-group">
-                <label for="currentPinInput">رمز عبور فعلی</label>
-                <input type="password" id="currentPinInput" class="form-input" placeholder="رمز فعلی (پیش‌فرض 1234)" required>
-              </div>
-              <div class="form-group">
-                <label for="newPinInput">رمز عبور جدید</label>
-                <input type="password" id="newPinInput" class="form-input" placeholder="رمز جدید..." required>
-              </div>
-              <button type="submit" class="btn btn-secondary">
-                💾 ثبت رمز جدید
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <!-- JavaScript Scripts -->
   <script src="js/i18n.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/admin.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

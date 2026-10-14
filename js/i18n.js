@@ -10,6 +10,9 @@ const translations = {
     brandSubtitle: "مرکز فرماندهی پروژه‌ها",
     adminButton: "پنل مدیریت",
     langToggle: "English",
+    themeToggle: "تغییر حالت تم",
+    themeLight: "حالت روشن",
+    themeDark: "حالت تاریک",
     
     // Hero
     heroBadge: "✦ ویترین یکپارچه اپلیکیشن‌ها و برنامه‌های ساخته شده",
@@ -75,11 +78,28 @@ const translations = {
     // Admin Panel
     adminTitle: "پنل مدیریت هاب پروژه‌ها",
     adminSubtitle: "افزودن برنامه‌های جدید، ویرایش اطلاعات و پشتیبان‌گیری",
-    adminPinPrompt: "رمز عبور پنل مدیریت را وارد کنید",
+    adminPinPrompt: "ورود به کنترل‌پنل مدیریت",
     adminPinPlaceholder: "رمز پیش‌فرض: 1234",
     adminPinSubmit: "ورود به مدیریت",
-    adminPinError: "رمز عبور نادرست است!",
+    adminPinError: "نام کاربری یا رمز عبور نادرست است!",
     adminLogout: "خروج از پنل",
+    adminLoginTitle: "ورود به کنترل‌پنل مدیریت",
+    adminLoginSubtitle: "جهت مدیریت، افزودن و ویرایش برنامه‌ها وارد حساب مدیریت شوید",
+    adminUsernameLabel: "نام کاربری",
+    adminUsernamePlaceholder: "نام کاربری مدیر (پیش‌فرض: admin)",
+    adminPasswordLabel: "رمز عبور",
+    adminPasswordPlaceholder: "رمز عبور مدیر...",
+    adminLoginBtn: "ورود امن به پنل",
+    adminLoggedInAs: "کاربر فعال:",
+    adminViewLiveSite: "ویترین پروژه‌ها ↗",
+    adminStatsTotal: "کل برنامه‌ها",
+    adminStatsActive: "پروژه‌های فعال",
+    adminStatsFeatured: "ویژه‌ها",
+    adminSearchPlaceholder: "جستجو در عنوان، دسته یا تگ‌ها...",
+    adminSortLabel: "مرتب‌سازی:",
+    adminCategoryFilter: "دسته‌بندی:",
+    adminAllCategories: "همه دسته‌ها",
+    adminEmptyList: "هیچ برنامه‌ای یافت نشد.",
 
     // Admin Tabs
     tabAddApp: "افزودن برنامه جدید",
@@ -144,6 +164,10 @@ const translations = {
     brandSubtitle: "Projects Command Center",
     adminButton: "Admin Panel",
     langToggle: "فارسی",
+    themeToggle: "Toggle Theme",
+    themeLight: "Light Mode",
+    themeDark: "Dark Mode",
+    footerText: "Designed with Nordic Minimalism • Projects Command Center",
 
     // Hero
     heroBadge: "✦ Unified Interactive Showcase of Built Applications",
@@ -209,11 +233,28 @@ const translations = {
     // Admin Panel
     adminTitle: "Nexus Hub Admin Panel",
     adminSubtitle: "Add new applications, edit project metadata and manage backups",
-    adminPinPrompt: "Enter Admin Access Passcode",
+    adminPinPrompt: "Admin Authentication",
     adminPinPlaceholder: "Default PIN: 1234",
     adminPinSubmit: "Unlock Admin",
-    adminPinError: "Incorrect passcode! Please try again.",
-    adminLogout: "Exit Admin",
+    adminPinError: "Incorrect username or password!",
+    adminLogout: "Logout",
+    adminLoginTitle: "Admin Portal Sign-In",
+    adminLoginSubtitle: "Enter administrator credentials to access the management workspace",
+    adminUsernameLabel: "Username",
+    adminUsernamePlaceholder: "Admin username (default: admin)",
+    adminPasswordLabel: "Password",
+    adminPasswordPlaceholder: "Admin password...",
+    adminLoginBtn: "Sign In Securely",
+    adminLoggedInAs: "Logged in as:",
+    adminViewLiveSite: "Public Showcase ↗",
+    adminStatsTotal: "Total Apps",
+    adminStatsActive: "Active Apps",
+    adminStatsFeatured: "Featured",
+    adminSearchPlaceholder: "Search by title, category, tags...",
+    adminSortLabel: "Sort:",
+    adminCategoryFilter: "Category:",
+    adminAllCategories: "All Categories",
+    adminEmptyList: "No applications found.",
 
     // Admin Tabs
     tabAddApp: "Add New Application",
@@ -327,7 +368,7 @@ function setLanguage(lang) {
   if (window.renderAppHub) {
     window.renderAppHub();
   }
-  if (window.renderAdminList && window.isAdminOpen) {
+  if (window.renderAdminList && window.isAdminAuthenticated) {
     window.renderAdminList();
   }
 }

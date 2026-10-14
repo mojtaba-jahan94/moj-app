@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Hub - کنترل‌پنل مدیریت برنامه‌ها (Admin Portal)</title>
+  <meta name="description" content="پنل مدیریت اختصاصی و امن نکسوس هاب جهت افزودن، ویرایش و دسته‌بندی وب‌اپلیکیشن‌ها">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Early Theme Initialization -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('nexus_hub_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="lang-fa">
+
+  <!-- Minimalist Background Canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- ==========================================================================
+       VIEW 1: INITIAL AUTH VERIFICATION GATE (Prevents any UI flicker)
+       ========================================================================== -->
+  <div id="authGateLoader" class="auth-gate-loader">
+    <div class="spinner-ring"></div>
+    <p style="font-size: 0.95rem; font-weight: 500;">در حال احراز هویت امن... / Verifying Session...</p>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 2: DEDICATED SECURE LOGIN SCREEN (Rendered ONLY if unauthenticated)
+       ========================================================================== -->
+  <section id="loginSection" class="admin-login-section" style="display: none;">
+
+    <!-- Top Bar with Theme & Language Toggles -->
+    <div class="login-top-bar">
+      <button class="theme-btn" id="loginThemeToggleBtn" title="تغییر حالت تم / Toggle Theme" aria-label="Toggle Theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <button class="lang-btn" id="loginLangToggleBtn" title="تغییر زبان / Switch Language">
+        <span>EN / فا</span>
+      </button>
+    </div>
+
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-shield-icon">🔐</div>
+        <h2 class="login-title" data-i18n="adminLoginTitle">ورود به کنترل‌پنل مدیریت</h2>
+        <p class="login-subtitle" data-i18n="adminLoginSubtitle">جهت دسترسی به پنل مدیریت پروژه‌ها، نام کاربری و رمز عبور خود را وارد نمایید.</p>
+      </div>
+
+      <!-- Error Alert Box -->
+      <div id="loginError" class="login-error-alert hidden">
+        <span>⚠️</span>
+        <span id="loginErrorText" data-i18n="adminPinError">نام کاربری یا رمز عبور نادرست است!</span>
+      </div>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="login-input-wrap">
+          <span class="input-icon">👤</span>
+          <input 
+            type="text" 
+            id="loginUsername" 
+            name="username" 
+            class="form-input" 
+            placeholder="نام کاربری مدیر (admin)" 
+            data-i18n-placeholder="adminUsernamePlaceholder"
+            required 
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="login-input-wrap">
+          <span class="input-icon">🔑</span>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            name="password" 
+            class="form-input" 
+            placeholder="رمز عبور..." 
+            data-i18n-placeholder="adminPasswordPlaceholder"
+            required 
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="login-btn-submit">
+          <span>⚡</span>
+          <span data-i18n="adminLoginBtn">ورود ایمن به پنل</span>
+        </button>
+      </form>
+
+      <div class="login-footer-links">
+        <a href="index.html" class="login-back-link">
+          <span>←</span>
+          <span data-i18n="adminViewLiveSite">بازگشت به ویترین پروژه‌ها</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       VIEW 3: ADMIN DASHBOARD (Rendered ONLY after successful session verification)
+       ========================================================================== -->
+  <main id="dashboardWorkspace" class="admin-workspace" style="display: none;">
+
+    <!-- Top Sticky Bar -->
+    <header class="admin-header-bar">
+      <div class="admin-brand">
+        <img src="assets/logo.jpg" alt="Logo">
+        <div>
+          <h1>
+            <span>نکسوس هاب</span>
+            <span class="admin-badge-pill">Admin Console</span>
+          </h1>
+          <p style="font-size: 0.8rem; color: var(--text-secondary);" data-i18n="adminSubtitle">مدیریت کامل، ثبت پروژه‌ها و کنترل دیتابیس</p>
+        </div>
+      </div>
+
+      <div class="admin-top-actions">
+        <!-- Turso / Server Status Indicator -->
+        <div id="serverStatusBadge" class="status-badge online">
+          <span class="pulse-dot"></span>
+          <span>در حال بررسی سرور...</span>
+        </div>
+
+        <!-- View Public Showcase -->
+        <a href="index.html" target="_blank" class="btn btn-secondary" style="font-size: 0.84rem;" title="مشاهده سایت عمومی">
+          <span>↗</span> <span data-i18n="adminViewLiveSite">ویترین عمومی</span>
+        </a>
+
+        <!-- Theme Switcher -->
+        <button id="themeToggleBtn" class="theme-btn" title="تغییر حالت تم / Toggle Theme" aria-label="Toggle Theme">
+          <span class="theme-icon">🌙</span>
+        </button>
+
+        <!-- Language Switcher -->
+        <button id="langToggleBtn" class="lang-btn" title="تغییر زبان / Switch Language">
+          <span id="langBtnText" data-i18n="langToggle">English</span>
+        </button>
+
+        <!-- Logged in Admin Chip -->
+        <div class="user-chip">
+          <span class="user-avatar-dot"></span>
+          <span id="activeUsername">admin</span>
+        </div>
+
+        <!-- Logout Button -->
+        <button id="logoutBtn" class="btn-logout" title="خروج از حساب">
+          <span>🚪</span>
+          <span data-i18n="adminLogout">خروج</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Quick Stats Cards Row -->
+    <section class="admin-stats-row">
+      <div class="admin-stat-card">
+        <div class="stat-info">
+          <div class="stat-num" id="statTotalApps">0</div>
+          <div class="stat-txt" data-i18n="adminStatsTotal">کل برنامه‌ها</div>
+        </div>
+        <div class="stat-icon-wrap">📦</div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="stat-info">
+          <div class="stat-num" id="statActiveApps">0</div>
+          <div class="stat-txt" data-i18n="adminStatsActive">پروژه‌های فعال و آنلاین</div>
+        </div>
+        <div class="stat-icon-wrap">🟢</div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="stat-info">
+          <div class="stat-num" id="statFeaturedApps">0</div>
+          <div class="stat-txt" data-i18n="adminStatsFeatured">پروژه‌های ویژه (Pinned)</div>
+        </div>
+        <div class="stat-icon-wrap">★</div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="stat-info">
+          <div class="stat-num" id="statCategoriesCount">0</div>
+          <div class="stat-txt" data-i18n="statCategories">دسته‌بندی‌های فعال</div>
+        </div>
+        <div class="stat-icon-wrap">🗂️</div>
+      </div>
+    </section>
+
+    <!-- Main Navigation Tabs & Panel -->
+    <div class="admin-main-panel">
+
+      <!-- Navigation Tabs -->
+      <nav class="admin-nav-tabs">
+        <button class="admin-tab-btn active" data-tab="manageApps">
+          <span>📑</span> <span data-i18n="tabManageApps">مدیریت و ویرایش برنامه‌ها</span> (<span id="adminAppsCount">0</span>)
+        </button>
+        <button class="admin-tab-btn" data-tab="addApp">
+          <span>+</span> <span id="formModeTitle" data-i18n="tabAddApp">افزودن برنامه جدید</span>
+        </button>
+        <button class="admin-tab-btn" data-tab="backupSettings">
+          <span>⚙️</span> <span data-i18n="tabBackupSettings">پشتیبان‌گیری و پایگاه‌داده</span>
+        </button>
+      </nav>
+
+      <div class="admin-body">
+
+        <!-- ==================================================================
+             TAB 1: MANAGE APPS LIST & SEARCH
+             ================================================================== -->
+        <div id="tabContent_manageApps" class="admin-tab-content active">
+
+          <!-- Search & Filter Controls Bar -->
+          <div class="table-filter-toolbar">
+            <div class="search-box-admin">
+              <span class="icon">🔍</span>
+              <input 
+                type="text" 
+                id="adminSearchInput" 
+                class="form-input" 
+                placeholder="جستجو بر اساس عنوان، تکنولوژی یا آدرس..." 
+                data-i18n-placeholder="adminSearchPlaceholder"
+                autocomplete="off"
+              >
+            </div>
+
+            <div class="table-filter-actions">
+              <select id="adminCategoryFilter" class="admin-select-filter">
+                <option value="all" data-i18n="adminAllCategories">همه دسته‌ها</option>
+                <option value="web">Web Applications</option>
+                <option value="ai">AI & ML</option>
+                <option value="dashboards">Dashboards</option>
+                <option value="tools">Tools & Utilities</option>
+                <option value="mobile">Mobile / Desktop</option>
+              </select>
+
+              <select id="adminSortFilter" class="admin-select-filter">
+                <option value="newest" data-i18n="sortNewest">جدیدترین</option>
+                <option value="featured" data-i18n="sortFeatured">ویژه‌ها اول</option>
+                <option value="title" data-i18n="sortTitle">بر اساس نام</option>
+              </select>
+
+              <button class="btn btn-primary" onclick="switchAdminTab('addApp')" style="height: 40px; padding: 0 1.1rem;">
+                <span>+</span> <span data-i18n="tabAddApp">افزودن پروژه جدید</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Apps Data Table -->
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;"></th>
+                  <th data-i18n="tableColTitle">عنوان برنامه</th>
+                  <th data-i18n="tableColCategory">دسته‌بندی</th>
+                  <th data-i18n="tableColStatus">وضعیت</th>
+                  <th data-i18n="tableColActions">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="adminAppsTableBody">
+                <!-- Dynamically populated by js/admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==================================================================
+             TAB 2: ADD / EDIT APP FORM
+             ================================================================== -->
+        <div id="tabContent_addApp" class="admin-tab-content">
+          <form id="adminAppForm">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="appTitleFa" data-i18n="formTitleFa">عنوان به فارسی *</label>
+                <input type="text" id="appTitleFa" class="form-input" placeholder="مثال: بات هوشمند تلگرام" required>
+              </div>
+              <div class="form-group">
+                <label for="appTitleEn" data-i18n="formTitleEn">عنوان به انگلیسی</label>
+                <input type="text" id="appTitleEn" class="form-input" placeholder="e.g. Telegram AI Bot">
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="appDescFa" data-i18n="formDescFa">توضیح مختصر فارسی (روی کارت)</label>
+                <input type="text" id="appDescFa" class="form-input" placeholder="توضیح کوتاه ۱ یا ۲ خطی">
+              </div>
+              <div class="form-group">
+                <label for="appDescEn" data-i18n="formDescEn">توضیح مختصر انگلیسی</label>
+                <input type="text" id="appDescEn" class="form-input" placeholder="Short 1-2 sentence description">
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="appLongDescFa" data-i18n="formLongDescFa">توضیحات تکمیلی و امکانات (فارسی)</label>
+                <textarea id="appLongDescFa" class="form-textarea" placeholder="شرح ویژگی‌ها، کاربرد و معماری پروژه..."></textarea>
+              </div>
+              <div class="form-group">
+                <label for="appLongDescEn" data-i18n="formLongDescEn">توضیحات تکمیلی و امکانات (انگلیسی)</label>
+                <textarea id="appLongDescEn" class="form-textarea" placeholder="Detailed features, workflow and highlights..."></textarea>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="appUrl" data-i18n="formUrl">آدرس اینترنتی یا مسیر محلی برنامه (URL) *</label>
+                <input type="text" id="appUrl" class="form-input" placeholder="https://my-app.vercel.app یا http://localhost:5173" required>
+              </div>
+              <div class="form-group">
+                <label for="appGithub" data-i18n="formGithub">لینک گیت‌هاب یا مخزن کد (اختیاری)</label>
+                <input type="text" id="appGithub" class="form-input" placeholder="https://github.com/username/project">
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="appCategory" data-i18n="formCategory">دسته‌بندی</label>
+                <select id="appCategory" class="form-select">
+                  <option value="web">Web Application (وب‌اپلیکیشن)</option>
+                  <option value="ai">AI & Machine Learning (هوش مصنوعی)</option>
+                  <option value="dashboards">Dashboard (داشبورد و تحلیل)</option>
+                  <option value="tools">Tool & Utility (ابزار و یوتیلیتی)</option>
+                  <option value="mobile">Mobile / Desktop (موبایل و دسکتاپ)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="appStatus" data-i18n="formStatus">وضعیت برنامه</label>
+                <select id="appStatus" class="form-select">
+                  <option value="active">Active & Online (فعال و آنلاین)</option>
+                  <option value="beta">Beta Release (نسخه آزمایشی)</option>
+                  <option value="in_progress">In Development (در حال توسعه)</option>
+                  <option value="maintenance">Maintenance (در دست تعمیر)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Tech Stack Tags -->
+            <div class="form-group">
+              <label for="appTags" data-i18n="formTags">تکنولوژی‌ها (با کاما جدا کنید)</label>
+              <input type="text" id="appTags" class="form-input" placeholder="React, Python, Tailwind, FastAPI" data-i18n-placeholder="formTagsHint">
+              <div class="tag-suggestions-row" id="popularTagsContainer"></div>
+            </div>
+
+            <!-- Cover Image / Gradient Selector -->
+            <div class="form-group">
+              <label data-i18n="formImage">تصویر کاور برنامه (آپلود فایل، آدرس اینترنتی یا گرادیان آماده)</label>
+              <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('imageFileInput').click()">
+                  📁 <span data-i18n="formUploadBtn">انتخاب فایل تصویر...</span>
+                </button>
+                <input type="text" id="appImageUrl" class="form-input" style="flex: 1; min-width: 220px;" placeholder="یا آدرس اینترنتی تصویر (https://...)">
+              </div>
+
+              <!-- Gradient Presets -->
+              <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.4rem;" data-i18n="formImagePreset">یا انتخاب گرادیان نوردیک آماده:</div>
+              <div class="gradient-presets-wrapper" id="presetGradientsContainer"></div>
+
+              <!-- Image Preview Box -->
+              <div class="image-preview-box" id="imagePreviewBox">
+                <span class="preview-placeholder">پیش‌نمایش تصویر در اینجا ظاهر می‌شود / Image preview</span>
+              </div>
+            </div>
+
+            <!-- Checkbox toggles -->
+            <div class="form-checkbox-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="appFeatured">
+                <span data-i18n="formFeatured">نمایش به عنوان پروژه ویژه (Pin to Top)</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="appAllowIframe" checked>
+                <span data-i18n="formAllowIframe">اجازه پیش‌نمایش درون قاب زنده (Iframe Preview)</span>
+              </label>
+            </div>
+
+            <!-- Form Actions -->
+            <div style="display: flex; gap: 0.8rem; margin-top: 1.5rem;">
+              <button type="submit" id="saveAppBtn" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                <span>✨</span> <span data-i18n="btnSaveApp">ذخیره و ثبت برنامه</span>
+              </button>
+              <button type="button" id="cancelEditBtn" class="btn btn-secondary hidden">
+                <span data-i18n="btnCancelEdit">انصراف از ویرایش</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ==================================================================
+             TAB 3: BACKUP & DATABASE SETTINGS
+             ================================================================== -->
+        <div id="tabContent_backupSettings" class="admin-tab-content">
+          <div class="backup-card">
+            <h4 data-i18n="backupTitle">پشتیبان‌گیری و بازیابی داده‌ها</h4>
+            <p data-i18n="backupDesc">می‌توانید تمام لیست برنامه‌ها را به صورت فایل JSON خروجی بگیرید یا در یک سرور دیگر بارگذاری نمایید.</p>
+
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.2rem;">
+              <button id="exportJsonBtn" class="btn btn-primary">
+                📥 <span data-i18n="btnExportJson">دانلود فایل پشتیبان (Export JSON)</span>
+              </button>
+
+              <input type="file" id="importJsonInput" accept=".json" style="display: none;">
+              <button type="button" class="btn btn-secondary" onclick="document.getElementById('importJsonInput').click()">
+                📤 <span data-i18n="btnImportJson">بارگذاری و بازیابی از فایل JSON</span>
+              </button>
+
+              <button id="resetDefaultsBtn" class="btn btn-secondary" style="color: #EF4444;">
+                🔄 <span data-i18n="btnResetDefault">بازنشانی نمونه‌های پیش‌فرض</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="backup-card" style="margin-top: 1.5rem;">
+            <h4>درباره ذخیره‌سازی داده‌ها (Data Persistence)</h4>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7;">
+              نکسوس هاب از پایگاه‌داده ابری <strong>Turso (libSQL)</strong> بر روی ورسل پشتیبانی می‌کند. در صورتی که متغیرهای محیطی <code>TURSO_DATABASE_URL</code> و <code>TURSO_AUTH_TOKEN</code> تنظیم شده باشند، کلیه تغییرات مستقیماً در دیتابیس ابری ذخیره و به صورت بلادرنگ در ویترین لندینگ‌پیج منعکس خواهند شد.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/i18n.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

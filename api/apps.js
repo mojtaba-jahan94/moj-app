@@ -8,11 +8,11 @@
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@libsql/client/web');
+const { verifyRequest } = require('./_auth');
 
 // Environment variables
 const TURSO_URL = process.env.TURSO_DATABASE_URL;
 const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '1234';
 const DATA_FILE = path.join(process.cwd(), 'data', 'apps.json');
 
 // Helper to obtain Turso Client with support for multiple env variable aliases
@@ -86,11 +86,10 @@ function rowToApp(row) {
   };
 }
 
-// Check admin authorization
+// Check admin authorization via verified JWT
 function checkAuth(req) {
-  const authHeader = req.headers['authorization'] || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-  return token === ADMIN_PASSWORD;
+  const session = verifyRequest(req);
+  return !!session;
 }
 
 // Fallback: Read apps from local disk
@@ -118,8 +117,13 @@ function writeLocalApps(apps) {
 }
 
 module.exports = async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers['origin'] || '*';
+  if (origin && origin !== '*') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
@@ -207,7 +211,7 @@ module.exports = async function handler(req, res) {
     if (!checkAuth(req)) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized: Invalid or missing Admin Password'
+        error: 'Unauthorized: Valid Admin session or token required'
       });
     }
 

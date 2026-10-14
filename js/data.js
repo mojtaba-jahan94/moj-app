@@ -156,11 +156,12 @@ class DataManager {
   }
 
   getAuthHeader() {
-    const pin = sessionStorage.getItem('nexus_admin_pin') || this.getAdminPin();
-    return {
-      'Authorization': `Bearer ${pin}`,
-      'Content-Type': 'application/json'
-    };
+    const token = sessionStorage.getItem('nexus_admin_jwt') || localStorage.getItem('nexus_admin_jwt') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   }
 
   updateServerStatusBadge() {
@@ -263,12 +264,13 @@ class DataManager {
         const method = isNew ? 'POST' : 'PUT';
         const res = await fetch(url, {
           method,
+          credentials: 'same-origin',
           headers: this.getAuthHeader(),
           body: JSON.stringify(appData)
         });
 
         if (res.status === 401) {
-          throw new Error('رمز ادمین نامعتبر است (401 Unauthorized)');
+          throw new Error('نشست ادمین نامعتبر است (401 Unauthorized)');
         }
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
@@ -291,10 +293,11 @@ class DataManager {
       try {
         const res = await fetch(`${this.apiBase}/apps?id=${id}`, {
           method: 'DELETE',
+          credentials: 'same-origin',
           headers: this.getAuthHeader()
         });
         if (res.status === 401) {
-          throw new Error('رمز ادمین نامعتبر است (401 Unauthorized)');
+          throw new Error('نشست ادمین نامعتبر است (401 Unauthorized)');
         }
       } catch (err) {
         console.warn('Server delete failed:', err);
@@ -314,11 +317,12 @@ class DataManager {
       try {
         const res = await fetch(`${this.apiBase}/apps`, {
           method: 'POST',
+          credentials: 'same-origin',
           headers: this.getAuthHeader(),
           body: JSON.stringify(this.apps)
         });
         if (res.status === 401) {
-          throw new Error('رمز ادمین نامعتبر است (401 Unauthorized)');
+          throw new Error('نشست ادمین نامعتبر است (401 Unauthorized)');
         }
       } catch (err) {
         console.warn('Server import failed:', err);
@@ -337,6 +341,7 @@ class DataManager {
       try {
         await fetch(`${this.apiBase}/apps`, {
           method: 'POST',
+          credentials: 'same-origin',
           headers: this.getAuthHeader(),
           body: JSON.stringify(this.apps)
         });
